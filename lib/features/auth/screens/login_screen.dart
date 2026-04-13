@@ -24,9 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text.trim(),
       );
       if (mounted) {
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const AppStartup()),
+              (route) => false,
         );
       }
     } on AuthException catch (e) {

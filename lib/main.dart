@@ -83,9 +83,10 @@ class _AppStartupState extends State<AppStartup> {
   }
 
   void _go(Widget screen) {
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => screen),
+          (route) => false, // removes ALL previous routes
     );
   }
 

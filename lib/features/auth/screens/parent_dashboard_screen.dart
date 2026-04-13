@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/providers/child_provider.dart';
 import '../../../core/services/child_service.dart';
-import '../../../core/widgets/app_button.dart';
 import 'login_screen.dart';
+import 'child_dashboard_screen.dart';
 import '../../parent/screens/reports_screen.dart';
 import '../../parent/screens/settings_screen.dart';
 
@@ -15,14 +17,18 @@ class ParentDashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Parent Dashboard'),
+        automaticallyImplyLeading: false, // removes back button
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await AuthService.logout();
               if (context.mounted) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()));
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                );
               }
             },
           ),
@@ -35,23 +41,20 @@ class ParentDashboardScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             const Text('Welcome, Parent!',
-                style: TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             const Text('What would you like to do?',
                 style: TextStyle(color: AppTheme.textSecondary)),
             const SizedBox(height: 40),
-            // Reports card
             _DashboardCard(
               icon: Icons.bar_chart,
               title: 'Reports',
-              subtitle: 'View your children\'s progress and scores',
+              subtitle: "View your children's progress and scores",
               color: AppTheme.lessonsColor,
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ReportsScreen())),
             ),
             const SizedBox(height: 16),
-            // Settings card
             _DashboardCard(
               icon: Icons.settings,
               title: 'Settings',
@@ -59,6 +62,30 @@ class ParentDashboardScreen extends StatelessWidget {
               color: AppTheme.secondary,
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            ),
+            const SizedBox(height: 16),
+            // Back to child dashboard
+            _DashboardCard(
+              icon: Icons.child_care,
+              title: 'Back to Child',
+              subtitle: 'Return to the child learning dashboard',
+              color: AppTheme.success,
+              onTap: () async {
+                // Reload children and set active child
+                final children = await ChildService.getChildren();
+                if (context.mounted && children.isNotEmpty) {
+                  final activeChild =
+                      context.read<ChildProvider>().activeChild ??
+                          children.first;
+                  context.read<ChildProvider>().setActiveChild(activeChild);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ChildDashboardScreen()),
+                        (route) => false,
+                  );
+                }
+              },
             ),
           ],
         ),
