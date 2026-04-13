@@ -1,114 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../core/providers/child_provider.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/child_service.dart';
-import '../../../models/child_model.dart';
-import 'create_child_screen.dart';
-import 'child_dashboard_screen.dart';
+import '../../../core/widgets/app_button.dart';
 import 'login_screen.dart';
+import '../../parent/screens/reports_screen.dart';
+import '../../parent/screens/settings_screen.dart';
 
-class ParentDashboardScreen extends StatefulWidget {
+class ParentDashboardScreen extends StatelessWidget {
   const ParentDashboardScreen({super.key});
-
-  @override
-  State<ParentDashboardScreen> createState() => _ParentDashboardScreenState();
-}
-
-class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
-  List<ChildModel> _children = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadChildren();
-  }
-
-  Future<void> _loadChildren() async {
-    final children = await ChildService.getChildren();
-    if (mounted) setState(() { _children = children; _isLoading = false; });
-  }
-
-  Future<void> _deleteChild(ChildModel child) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Profile'),
-        content: Text('Remove ${child.nickname}\'s profile? This cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red))),
-        ],
-      ),
-    );
-    if (confirm == true) {
-      await ChildService.deleteChild(child.id);
-      _loadChildren();
-    }
-  }
-
-  void _selectChild(ChildModel child) {
-    context.read<ChildProvider>().setActiveChild(child);
-    Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (_) => const ChildDashboardScreen()));
-  }
-
-  Future<void> _changePin() async {
-    final controller = TextEditingController();
-    final newPin = await showDialog<String>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Change PIN'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          maxLength: 4,
-          obscureText: true,
-          decoration: const InputDecoration(
-            labelText: 'Enter new 4-digit PIN',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () {
-                if (controller.text.length == 4) {
-                  Navigator.pop(context, controller.text);
-                }
-              },
-              child: const Text('Save')),
-        ],
-      ),
-    );
-
-    if (newPin != null) {
-      await ChildService.updatePin(newPin);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PIN updated successfully!')));
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Parent Dashboard'),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.pin),
-            tooltip: 'Change PIN',
-            onPressed: _changePin,
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -121,42 +28,99 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _children.isEmpty
-          ? const Center(child: Text('No children profiles yet.'))
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _children.length,
-        itemBuilder: (context, i) {
-          final child = _children[i];
-          return Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                  child: Icon(Icons.child_care)),
-              title: Text(child.nickname,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('${child.coins} coins'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 16),
+            const Text('Welcome, Parent!',
+                style: TextStyle(
+                    fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('What would you like to do?',
+                style: TextStyle(color: AppTheme.textSecondary)),
+            const SizedBox(height: 40),
+            // Reports card
+            _DashboardCard(
+              icon: Icons.bar_chart,
+              title: 'Reports',
+              subtitle: 'View your children\'s progress and scores',
+              color: AppTheme.lessonsColor,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ReportsScreen())),
+            ),
+            const SizedBox(height: 16),
+            // Settings card
+            _DashboardCard(
+              icon: Icons.settings,
+              title: 'Settings',
+              subtitle: 'Manage children profiles and account details',
+              color: AppTheme.secondary,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _DashboardCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteChild(child),
-                  ),
+                  Text(title,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(subtitle,
+                      style: const TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 13)),
                 ],
               ),
-              onTap: () => _selectChild(child),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(context,
-            MaterialPageRoute(
-                builder: (_) => const CreateChildScreen(isFirstTime: false))),
-        backgroundColor: Colors.indigo,
-        child: const Icon(Icons.add, color: Colors.white),
+            Icon(Icons.chevron_right, color: color),
+          ],
+        ),
       ),
     );
   }

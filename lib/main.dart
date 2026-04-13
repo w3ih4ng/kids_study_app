@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/constants/app_theme.dart';
 import 'core/constants/supabase_constants.dart';
 import 'core/providers/child_provider.dart';
 import 'core/services/auth_service.dart';
@@ -29,10 +30,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Kids Study App',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.theme,
         home: const AppStartup(),
       ),
     );

@@ -2,43 +2,60 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/child_provider.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/widgets/child_bottom_nav_bar.dart';
+import '../../../core/widgets/coins_badge.dart';
+import '../../../core/widgets/child_avatar.dart';
+import '../../home/screens/home_screen.dart';
+import '../../lessons/screens/lesson_list_screen.dart';
+import '../../quizzes/screens/quiz_list_screen.dart';
+import '../../books/screens/book_list_screen.dart';
+import '../../pets/screens/pet_shop_screen.dart';
 import 'pin_screen.dart';
 import 'parent_dashboard_screen.dart';
 
-class ChildDashboardScreen extends StatelessWidget {
+class ChildDashboardScreen extends StatefulWidget {
   const ChildDashboardScreen({super.key});
 
-  Future<void> _goToParentDashboard(BuildContext context) async {
-    // Show loading while fetching PIN
+  @override
+  State<ChildDashboardScreen> createState() => _ChildDashboardScreenState();
+}
+
+class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
+  int _currentIndex = 0;
+
+  final List<Widget> _tabs = const [
+    HomeScreen(),
+    LessonListScreen(),
+    QuizListScreen(),
+    BookListScreen(),
+    PetShopScreen(),
+  ];
+
+  Future<void> _goToParentDashboard() async {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
-
     try {
       final pin = await ChildService.getParentPin();
-      if (!context.mounted) return;
-      Navigator.pop(context); // dismiss loading
-
+      if (!mounted) return;
+      Navigator.pop(context);
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => PinScreen(
             correctPin: pin,
-            onSuccess: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const ParentDashboardScreen()),
-              );
-            },
+            onSuccess: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const ParentDashboardScreen()),
+            ),
           ),
         ),
       );
     } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(context); // dismiss loading
+      if (mounted) {
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to load PIN. Try again.')),
         );
@@ -52,34 +69,32 @@ class ChildDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(child?.nickname ?? 'Learning'),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ChildAvatar(
+              avatarUrl: child?.avatarUrl,
+              nickname: child?.nickname ?? '',
+              radius: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(child?.nickname ?? 'Learning'),
+          ],
+        ),
         actions: [
+          const CoinsBadge(),
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.switch_account),
             tooltip: 'Switch Profile',
-            onPressed: () => _goToParentDashboard(context),
+            onPressed: _goToParentDashboard,
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.child_care, size: 80, color: Colors.indigo),
-            const SizedBox(height: 16),
-            Text('Hi, ${child?.nickname ?? 'there'}!',
-                style: const TextStyle(
-                    fontSize: 28, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text('Ready to learn today?',
-                style: TextStyle(fontSize: 16, color: Colors.grey)),
-            const SizedBox(height: 40),
-            const Text('Lessons, Quizzes, Pets, Comics coming soon...',
-                style: TextStyle(color: Colors.grey)),
-          ],
-        ),
+      body: _tabs[_currentIndex],
+      bottomNavigationBar: ChildBottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
       ),
     );
   }
