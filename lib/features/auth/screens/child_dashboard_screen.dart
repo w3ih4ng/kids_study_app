@@ -10,6 +10,7 @@ import '../../lessons/screens/lesson_list_screen.dart';
 import '../../quizzes/screens/quiz_list_screen.dart';
 import '../../books/screens/book_list_screen.dart';
 import '../../pets/screens/pet_shop_screen.dart';
+import '../../profile/screens/child_profile_screen.dart';
 import 'pin_screen.dart';
 import 'parent_dashboard_screen.dart';
 
@@ -31,6 +32,14 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     PetShopScreen(),
   ];
 
+  final List<String> _tabTitles = const [
+    'Home',
+    'Lessons',
+    'Quizzes',
+    'Books',
+    'Pets',
+  ];
+
   Future<void> _goToParentDashboard() async {
     showDialog(
       context: context,
@@ -46,9 +55,10 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
         MaterialPageRoute(
           builder: (_) => PinScreen(
             correctPin: pin,
-            onSuccess: () => Navigator.pushReplacement(
+            onSuccess: () => Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (_) => const ParentDashboardScreen()),
+                  (route) => false,
             ),
           ),
         ),
@@ -63,34 +73,58 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final child = context.watch<ChildProvider>().activeChild;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
+  // Home tab AppBar — shows avatar + name + coins
+  PreferredSizeWidget _buildHomeAppBar(child) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      title: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ChildProfileScreen()),
+        ),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             ChildAvatar(
               avatarUrl: child?.avatarUrl,
               nickname: child?.nickname ?? '',
-              radius: 16,
+              radius: 22,                    // slightly bigger avatar
             ),
-            const SizedBox(width: 8),
-            Text(child?.nickname ?? 'Learning'),
+            const SizedBox(width: 10),
+            Text(
+              child?.nickname ?? 'Learning',
+              style: const TextStyle(
+                fontSize: 24,                // bigger
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
-        actions: [
-          const CoinsBadge(),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.switch_account),
-            tooltip: 'Switch Profile',
-            onPressed: _goToParentDashboard,
-          ),
-        ],
       ),
+      actions: const [
+        CoinsBadge(),
+        SizedBox(width: 12),
+      ],
+    );
+  }
+
+  // Other tabs AppBar — shows screen title only
+  PreferredSizeWidget _buildDefaultAppBar(String title) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      title: Text(title),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final child = context.watch<ChildProvider>().activeChild;
+
+    return Scaffold(
+      appBar: _currentIndex == 0
+          ? _buildHomeAppBar(child)
+          : _buildDefaultAppBar(_tabTitles[_currentIndex]),
       body: _tabs[_currentIndex],
       bottomNavigationBar: ChildBottomNavBar(
         currentIndex: _currentIndex,

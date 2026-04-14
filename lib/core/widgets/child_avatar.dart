@@ -19,6 +19,7 @@ class ChildAvatar extends StatelessWidget {
       return CircleAvatar(
         radius: radius,
         backgroundImage: NetworkImage(avatarUrl!),
+        onBackgroundImageError: (_, __) {},
       );
     }
     return CircleAvatar(

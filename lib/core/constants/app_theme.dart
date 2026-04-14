@@ -28,7 +28,13 @@ class AppTheme {
       backgroundColor: primary,
       foregroundColor: Colors.white,
       elevation: 0,
-      centerTitle: true,
+      centerTitle: false,
+      toolbarHeight: 70,           // bigger height
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 24,              // bigger font
+        fontWeight: FontWeight.bold,
+      ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
