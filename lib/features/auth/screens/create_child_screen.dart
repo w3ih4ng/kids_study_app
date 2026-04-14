@@ -27,11 +27,22 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
       await ChildService.createChild(_nicknameController.text.trim());
       final children = await ChildService.getChildren();
       if (mounted) {
-        // Set the newly created child as active
         final newChild = children.last;
         context.read<ChildProvider>().setActiveChild(newChild);
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const ChildDashboardScreen()));
+
+        if (widget.isFirstTime) {
+          // First time — clear stack and go to dashboard
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const ChildDashboardScreen()),
+                (route) => false,
+          );
+        } else {
+          // From settings — just go back
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Child profile created!')));
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -46,6 +57,10 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Show app bar with back button only when not first time
+      appBar: widget.isFirstTime
+          ? null
+          : AppBar(title: const Text('Add Child Profile')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -60,8 +75,8 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
                     ? "Let's set up your first child profile!"
                     : 'Add a new child profile',
                 textAlign: TextAlign.center,
-                style:
-                const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -88,7 +103,8 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Continue', style: TextStyle(fontSize: 16)),
+                    : const Text('Continue',
+                    style: TextStyle(fontSize: 16)),
               ),
             ],
           ),
