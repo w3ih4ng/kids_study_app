@@ -12,7 +12,7 @@ class LessonDetailScreen extends StatefulWidget {
 }
 
 class _LessonDetailScreenState extends State<LessonDetailScreen> {
-  YoutubePlayerController? _youtubeController;
+  YoutubePlayerController? _controller;
 
   @override
   void initState() {
@@ -22,9 +22,12 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       final videoId =
       YoutubePlayer.convertUrlToId(widget.lesson.contentUrl!);
       if (videoId != null) {
-        _youtubeController = YoutubePlayerController(
+        _controller = YoutubePlayerController(
           initialVideoId: videoId,
-          flags: const YoutubePlayerFlags(autoPlay: false),
+          flags: const YoutubePlayerFlags(
+            autoPlay: false,
+            mute: false,
+          ),
         );
       }
     }
@@ -32,7 +35,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
   @override
   void dispose() {
-    _youtubeController?.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -43,24 +46,44 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         ? AppTheme.lessonsColor
         : AppTheme.quizzesColor;
 
+    // Use YoutubePlayerBuilder for proper fullscreen support
+    if (_controller != null) {
+      return YoutubePlayerBuilder(
+        player: YoutubePlayer(
+          controller: _controller!,
+          showVideoProgressIndicator: true,
+          progressIndicatorColor: AppTheme.primary,
+        ),
+        builder: (context, player) {
+          return Scaffold(
+            appBar: AppBar(title: Text(lesson.title)),
+            body: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  player, // video goes here
+                  _lessonInfo(lesson, color),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    // Non-youtube (image) lesson
     return Scaffold(
       appBar: AppBar(title: Text(lesson.title)),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Video or image
-            if (lesson.type == 'youtube' && _youtubeController != null)
-              YoutubePlayer(
-                controller: _youtubeController!,
-                showVideoProgressIndicator: true,
-              )
-            else if (lesson.type == 'image' && lesson.contentUrl != null)
+            if (lesson.contentUrl != null)
               Image.network(
                 lesson.contentUrl!,
                 width: double.infinity,
-                height: 220,
-                fit: BoxFit.cover,
+                // No fixed height — let image show its natural proportions
+                fit: BoxFit.fitWidth,
                 errorBuilder: (_, __, ___) => Container(
                   height: 220,
                   color: color.withOpacity(0.1),
@@ -72,44 +95,45 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 height: 200,
                 color: color.withOpacity(0.1),
                 child: Center(
-                  child: Icon(Icons.play_lesson, color: color, size: 64),
+                  child: Icon(Icons.image, color: color, size: 64),
                 ),
               ),
-
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(lesson.title,
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  // Tags row
-                  Row(
-                    children: [
-                      _tag(lesson.subject, color),
-                      const SizedBox(width: 8),
-                      _tag(lesson.difficulty, _difficultyColor(lesson.difficulty)),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                  if (lesson.description != null) ...[
-                    const SizedBox(height: 20),
-                    const Text('About this lesson',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Text(lesson.description!,
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            height: 1.5)),
-                  ],
-                ],
-              ),
-            ),
+            _lessonInfo(lesson, color),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _lessonInfo(LessonModel lesson, Color color) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(lesson.title,
+              style: const TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _tag(lesson.subject, color),
+              const SizedBox(width: 8),
+              _tag(lesson.difficulty, _difficultyColor(lesson.difficulty)),
+            ],
+          ),
+          if (lesson.description != null &&
+              lesson.description!.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const Text('About this lesson',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(lesson.description!,
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, height: 1.5)),
+          ],
+        ],
       ),
     );
   }
@@ -132,7 +156,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       ),
       child: Text(label,
           style: TextStyle(
-              fontSize: 12, color: color, fontWeight: FontWeight.bold)),
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.bold)),
     );
   }
 }

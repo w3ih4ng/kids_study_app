@@ -4,6 +4,8 @@ import '../../../core/services/lesson_service.dart';
 import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../models/lesson_model.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminLessonsScreen extends StatefulWidget {
   const AdminLessonsScreen({super.key});
@@ -15,6 +17,9 @@ class AdminLessonsScreen extends StatefulWidget {
 class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
   List<LessonModel> _lessons = [];
   bool _isLoading = true;
+
+  bool _isUploading = false;
+  String? _uploadedImageUrl;
 
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
@@ -42,6 +47,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
     _selectedSubject = 'Math';
     _selectedDifficulty = 'Easy';
     _selectedType = 'youtube';
+    _uploadedImageUrl = null;
   }
 
   Future<void> _showForm({LessonModel? lesson}) async {
@@ -133,18 +139,57 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                       setModalState(() => _selectedType = v!),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _urlController,
-                  decoration: InputDecoration(
-                    labelText: _selectedType == 'youtube'
-                        ? 'YouTube URL'
-                        : 'Image URL',
-                    hintText: _selectedType == 'youtube'
-                        ? 'https://youtube.com/watch?v=...'
-                        : 'https://...',
-                    border: const OutlineInputBorder(),
+                if (_selectedType == 'youtube')
+                  TextField(
+                    controller: _urlController,
+                    decoration: const InputDecoration(
+                      labelText: 'YouTube URL',
+                      hintText: 'https://youtube.com/watch?v=...',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.play_circle, color: Colors.red),
+                    ),
+                  )
+                else ...[
+                  if (_uploadedImageUrl != null || _urlController.text.isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        _uploadedImageUrl ?? _urlController.text,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 160,
+                          color: AppTheme.background,
+                          child: const Icon(Icons.broken_image, size: 48),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  OutlinedButton.icon(
+                    onPressed: _isUploading
+                        ? null
+                        : () => _pickAndUploadImage(setModalState),
+                    icon: _isUploading
+                        ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                        : const Icon(Icons.upload_file),
+                    label: Text(_isUploading
+                        ? 'Uploading...'
+                        : _uploadedImageUrl != null || _urlController.text.isNotEmpty
+                        ? 'Change Image'
+                        : 'Upload Image'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () async {
@@ -206,6 +251,84 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
     if (confirmed == true) {
       await LessonService.deleteLesson(lesson.id);
       _load();
+    }
+  }
+
+  Future<String?> _pickAndUploadImage(StateSetter setModalState) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            const Text('Select Image',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: AppTheme.primary,
+                child: Icon(Icons.camera_alt, color: Colors.white),
+              ),
+              title: const Text('Take a Photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: AppTheme.secondary,
+                child: Icon(Icons.photo_library, color: Colors.white),
+              ),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return null;
+
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      maxWidth: 1024,
+      imageQuality: 80,
+    );
+    if (picked == null) return null;
+
+    setModalState(() => _isUploading = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      final fileName =
+          'lesson_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      await Supabase.instance.client.storage
+          .from('lessons')
+          .uploadBinary(fileName, bytes,
+          fileOptions: const FileOptions(upsert: true));
+
+      final url = Supabase.instance.client.storage
+          .from('lessons')
+          .getPublicUrl(fileName);
+
+      setModalState(() {
+        _uploadedImageUrl = url;
+        _urlController.text = url;
+        _isUploading = false;
+      });
+
+      return url;
+    } catch (e) {
+      setModalState(() => _isUploading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Upload failed: $e')));
+      }
+      return null;
     }
   }
 
