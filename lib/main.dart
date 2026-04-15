@@ -10,13 +10,24 @@ import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/create_child_screen.dart';
 import 'features/auth/screens/child_dashboard_screen.dart';
 import 'features/admin/screens/admin_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase for notifications
+  await Firebase.initializeApp();
+
+
   await Supabase.initialize(
     url: SupabaseConstants.url,
     anonKey: SupabaseConstants.anonKey,
   );
+
+  // Initialize notifications
+  await NotificationService.initialize();
+
   runApp(const MyApp());
 }
 
@@ -79,6 +90,11 @@ class _AppStartupState extends State<AppStartup> {
       final provider = context.read<ChildProvider>();
       provider.setActiveChild(children.first);
       _go(const ChildDashboardScreen());
+    }
+
+    // Save FCM token for this child
+    if (children.isNotEmpty) {
+      await NotificationService.saveToken(children.first.id);
     }
   }
 

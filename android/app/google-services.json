@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "666216782571",
+    "project_id": "kids-study-app-4189e",
+    "storage_bucket": "kids-study-app-4189e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666216782571:android:30bc621eaee9f5de7f3cae",
+        "android_client_info": {
+          "package_name": "com.example.kids_study_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAj7kbBNcc4-MeCN6wvk3xAfOOkmCGUIaQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

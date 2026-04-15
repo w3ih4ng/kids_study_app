@@ -6,6 +6,7 @@ import '../../../core/widgets/loading_widget.dart';
 import '../../../models/lesson_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/services/notification_service.dart';
 
 class AdminLessonsScreen extends StatefulWidget {
   const AdminLessonsScreen({super.key});
@@ -151,18 +152,86 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                   )
                 else ...[
                   if (_uploadedImageUrl != null || _urlController.text.isNotEmpty) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _uploadedImageUrl ?? _urlController.text,
-                        height: 160,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 160,
-                          color: AppTheme.background,
-                          child: const Icon(Icons.broken_image, size: 48),
-                        ),
+                    GestureDetector(
+                      onTap: () {
+                        // Full screen preview
+                        showDialog(
+                          context: context,
+                          builder: (_) => Dialog(
+                            backgroundColor: Colors.black,
+                            insetPadding: EdgeInsets.zero,
+                            child: Stack(
+                              children: [
+                                InteractiveViewer(
+                                  minScale: 0.5,
+                                  maxScale: 4.0,
+                                  child: Image.network(
+                                    _uploadedImageUrl ?? _urlController.text,
+                                    fit: BoxFit.contain,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                ),
+                                // Close button
+                                Positioned(
+                                  top: 16,
+                                  right: 16,
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.close,
+                                          color: Colors.white, size: 24),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              _uploadedImageUrl ?? _urlController.text,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 160,
+                                color: AppTheme.background,
+                                child: const Icon(Icons.broken_image, size: 48),
+                              ),
+                            ),
+                          ),
+                          // Tap to preview hint
+                          Container(
+                            margin: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.fullscreen, color: Colors.white, size: 14),
+                                SizedBox(width: 4),
+                                Text('Tap to preview',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -202,6 +271,12 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                         type: _selectedType,
                         contentUrl: _urlController.text.trim(),
                         description: _descController.text.trim(),
+                      );
+                      if (context.mounted) Navigator.pop(context);
+                      _load();
+                      await NotificationService.notifyAll(
+                        title: '📚 New Lesson Available!',
+                        body: '${_titleController.text.trim()} has been added. Check it out!',
                       );
                     } else {
                       await LessonService.updateLesson(lesson.id, {

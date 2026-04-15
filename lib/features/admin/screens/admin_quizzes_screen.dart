@@ -7,6 +7,7 @@ import '../../../core/widgets/loading_widget.dart';
 import '../../../models/lesson_model.dart';
 import '../../../models/quiz_model.dart';
 import 'admin_quiz_questions_screen.dart';
+import '../../../core/services/notification_service.dart';
 
 class AdminQuizzesScreen extends StatefulWidget {
   const AdminQuizzesScreen({super.key});
@@ -130,6 +131,12 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                         lessonId: _selectedLessonId,
                         coinValue:
                         int.tryParse(_coinController.text) ?? 100,
+                      );
+                      if (context.mounted) Navigator.pop(context);
+                      _load();
+                      await NotificationService.notifyAll(
+                        title: '📚 New Lesson Available!',
+                        body: '${_titleController.text.trim()} has been added. Check it out!',
                       );
                     } else {
                       await QuizService.updateQuiz(quiz.id, {
