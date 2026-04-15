@@ -272,11 +272,7 @@ class _PetShopScreenState extends State<PetShopScreen>
         final childPet = _myPets[i];
         final pet = childPet.pet;
         if (pet == null) return const SizedBox();
-
         final isActive = child?.activePetId == pet.id;
-        final xpProgress = childPet.isMaxLevel
-            ? 1.0
-            : childPet.xp / childPet.xpForNextLevel;
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -311,10 +307,8 @@ class _PetShopScreenState extends State<PetShopScreen>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppTheme.petsColor
-                                    .withOpacity(0.15),
-                                borderRadius:
-                                BorderRadius.circular(10),
+                                color: AppTheme.petsColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Text('Active',
                                   style: TextStyle(
@@ -325,52 +319,29 @@ class _PetShopScreenState extends State<PetShopScreen>
                           ]
                         ],
                       ),
+                      if (pet.description != null) ...[
+                        const SizedBox(height: 4),
+                        Text(pet.description!,
+                            style: const TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 13)),
+                      ],
                       const SizedBox(height: 4),
-                      Text(childPet.levelLabel,
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 13)),
-                      const SizedBox(height: 8),
-                      // XP progress bar
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                childPet.isMaxLevel
-                                    ? 'Max Level!'
-                                    : 'XP: ${childPet.xp}/${childPet.xpForNextLevel}',
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.textSecondary),
-                              ),
-                              Text('Lvl ${childPet.level}',
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.petsColor)),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          LinearProgressIndicator(
-                            value: xpProgress,
-                            backgroundColor:
-                            AppTheme.petsColor.withOpacity(0.2),
-                            valueColor: const AlwaysStoppedAnimation(
-                                AppTheme.petsColor),
-                            minHeight: 6,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ],
+                      Text(
+                        isActive
+                            ? '🌟 Your active companion!'
+                            : 'Tap "Set Active" to use this pet',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isActive
+                              ? AppTheme.petsColor
+                              : AppTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Set active button
                 if (!isActive)
                   ElevatedButton(
                     onPressed: () async {
@@ -378,7 +349,6 @@ class _PetShopScreenState extends State<PetShopScreen>
                         childId: child!.id,
                         petId: pet.id,
                       );
-                      // Update provider
                       final updatedChild = ChildModel(
                         id: child.id,
                         parentId: child.parentId,

@@ -145,28 +145,6 @@ class QuizService {
       });
     }
 
-    if (firstAttempt) {
-      // Award XP to active pet
-      try {
-        final childData = await supabase
-            .from('children')
-            .select('active_pet_id')
-            .eq('id', childId)
-            .single();
-
-        final activePetId = childData['active_pet_id'];
-        if (activePetId != null) {
-          await PetService.addXp(
-            childId: childId,
-            petId: activePetId,
-            xpToAdd: score * 10, // 10 XP per correct answer
-          );
-        }
-      } catch (e) {
-        // Don't block quiz completion if XP fails
-      }
-    }
-
     return (coinsEarned: coinsEarned, isFirstAttempt: firstAttempt);
   }
 

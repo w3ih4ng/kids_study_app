@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/child_provider.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/widgets/animated_pet_widget.dart';
 import '../../../core/widgets/child_bottom_nav_bar.dart';
 import '../../../core/widgets/coins_badge.dart';
 import '../../../core/widgets/child_avatar.dart';
@@ -13,6 +14,9 @@ import '../../pets/screens/pet_shop_screen.dart';
 import '../../profile/screens/child_profile_screen.dart';
 import 'pin_screen.dart';
 import 'parent_dashboard_screen.dart';
+import '../../pets/screens/pet_shop_screen.dart';
+import '../../../core/services/pet_service.dart';
+import '../../../models/pet_model.dart';
 
 class ChildDashboardScreen extends StatefulWidget {
   const ChildDashboardScreen({super.key});
@@ -117,19 +121,53 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     );
   }
 
+  Widget _buildFloatingPet() {
+    final child = context.watch<ChildProvider>().activeChild;
+    if (child?.activePetId == null) return const SizedBox();
+
+    return FutureBuilder<List<PetModel>>(
+      future: PetService.getAllPets(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox();
+        final activePet = snapshot.data!
+            .where((p) => p.id == child!.activePetId)
+            .firstOrNull;
+        if (activePet == null) return const SizedBox();
+
+        return AnimatedPetWidget(
+          imageUrl: activePet.imageUrl,
+          size: 100, // bigger
+          animate: true,
+          interactive: true,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final child = context.watch<ChildProvider>().activeChild;
 
-    return Scaffold(
-      appBar: _currentIndex == 0
-          ? _buildHomeAppBar(child)
-          : _buildDefaultAppBar(_tabTitles[_currentIndex]),
-      body: _tabs[_currentIndex],
-      bottomNavigationBar: ChildBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: _currentIndex == 0
+              ? _buildHomeAppBar(child)
+              : _buildDefaultAppBar(_tabTitles[_currentIndex]),
+          body: _tabs[_currentIndex],
+          bottomNavigationBar: ChildBottomNavBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+          ),
+        ),
+        // Floating pet overlay — positioned relative to full screen
+        if (_currentIndex != 4)
+          Positioned(
+            bottom: 80, // above nav bar
+            right: 16,
+            child: _buildFloatingPet(),
+          ),
+      ],
     );
   }
 }

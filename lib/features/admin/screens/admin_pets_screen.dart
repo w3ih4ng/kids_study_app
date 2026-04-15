@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/services/pet_service.dart';
@@ -38,8 +40,8 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
   }
 
   Future<String?> _pickAndUploadImage(StateSetter setModalState) async {
-    final picker = ImagePicker();
-    final source = await showModalBottomSheet<ImageSource>(
+    // Ask user what type of file
+    final choice = await showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
@@ -49,23 +51,22 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
           children: [
             const SizedBox(height: 12),
             const Text('Select Pet Image',
-                style:
-                TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             ListTile(
               leading: const CircleAvatar(
                   backgroundColor: AppTheme.primary,
-                  child:
-                  Icon(Icons.camera_alt, color: Colors.white)),
-              title: const Text('Take a Photo'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
+                  child: Icon(Icons.gif_box, color: Colors.white)),
+              title: const Text('Upload GIF (Animated)'),
+              subtitle: const Text('Recommended for animated pets'),
+              onTap: () => Navigator.pop(context, 'gif'),
             ),
             ListTile(
               leading: const CircleAvatar(
                   backgroundColor: AppTheme.secondary,
-                  child: Icon(Icons.photo_library, color: Colors.white)),
-              title: const Text('Choose from Gallery'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
+                  child: Icon(Icons.image, color: Colors.white)),
+              title: const Text('Upload Image (PNG/JPG)'),
+              onTap: () => Navigator.pop(context, 'image'),
             ),
             const SizedBox(height: 8),
           ],
@@ -73,25 +74,104 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
       ),
     );
 
-    if (source == null) return null;
-
-    final picked = await picker.pickImage(
-        source: source, maxWidth: 512, imageQuality: 80);
-    if (picked == null) return null;
+    if (choice == null) return null;
 
     setModalState(() => _isUploading = true);
+
     try {
-      final bytes = await picked.readAsBytes();
-      final fileName = 'pet_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      String? url;
 
-      await Supabase.instance.client.storage
-          .from('pets')
-          .uploadBinary(fileName, bytes,
-          fileOptions: const FileOptions(upsert: true));
+      if (choice == 'gif') {
+        // Use file_picker for GIF — no compression
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['gif'],
+        );
+        if (result == null || result.files.isEmpty) {
+          setModalState(() => _isUploading = false);
+          return null;
+        }
 
-      final url = Supabase.instance.client.storage
-          .from('pets')
-          .getPublicUrl(fileName);
+        final file = File(result.files.single.path!);
+        final bytes = await file.readAsBytes();
+        final fileName = 'pet_${DateTime.now().millisecondsSinceEpoch}.gif';
+
+        await Supabase.instance.client.storage
+            .from('pets')
+            .uploadBinary(fileName, bytes,
+            fileOptions: const FileOptions(
+              upsert: true,
+              contentType: 'image/gif', // important!
+            ));
+
+        url = Supabase.instance.client.storage
+            .from('pets')
+            .getPublicUrl(fileName);
+      } else {
+        // Regular image via image_picker
+        final picker = ImagePicker();
+        final source = await showModalBottomSheet<ImageSource>(
+          context: context,
+          shape: const RoundedRectangleBorder(
+              borderRadius:
+              BorderRadius.vertical(top: Radius.circular(16))),
+          builder: (_) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                const Text('Select Source',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: const CircleAvatar(
+                      backgroundColor: AppTheme.primary,
+                      child: Icon(Icons.camera_alt, color: Colors.white)),
+                  title: const Text('Take a Photo'),
+                  onTap: () =>
+                      Navigator.pop(context, ImageSource.camera),
+                ),
+                ListTile(
+                  leading: const CircleAvatar(
+                      backgroundColor: AppTheme.secondary,
+                      child:
+                      Icon(Icons.photo_library, color: Colors.white)),
+                  title: const Text('Choose from Gallery'),
+                  onTap: () =>
+                      Navigator.pop(context, ImageSource.gallery),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+
+        if (source == null) {
+          setModalState(() => _isUploading = false);
+          return null;
+        }
+
+        final picked = await picker.pickImage(
+            source: source, maxWidth: 512, imageQuality: 80);
+        if (picked == null) {
+          setModalState(() => _isUploading = false);
+          return null;
+        }
+
+        final bytes = await picked.readAsBytes();
+        final fileName =
+            'pet_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+        await Supabase.instance.client.storage
+            .from('pets')
+            .uploadBinary(fileName, bytes,
+            fileOptions: const FileOptions(upsert: true));
+
+        url = Supabase.instance.client.storage
+            .from('pets')
+            .getPublicUrl(fileName);
+      }
 
       setModalState(() {
         _imageUrl = url;
@@ -158,8 +238,12 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
                         child: _imageUrl != null
                             ? ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          child: Image.network(_imageUrl!,
-                              fit: BoxFit.contain),
+                          child: AnimatedPetWidget(
+                            imageUrl: _imageUrl,
+                            size: 100,
+                            animate: false,
+                            interactive: false,
+                          ),
                         )
                             : const Icon(Icons.pets,
                             size: 48, color: AppTheme.petsColor),

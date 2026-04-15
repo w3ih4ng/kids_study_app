@@ -4,8 +4,7 @@ import '../../models/pet_model.dart';
 final supabase = Supabase.instance.client;
 
 class PetService {
-  // ── Shop ──────────────────────────────────────────
-
+  // ── Shop ─────────────────────────────────────────
   static Future<List<PetModel>> getAllPets() async {
     final response = await supabase
         .from('pets')
@@ -16,7 +15,6 @@ class PetService {
   }
 
   // ── Child Pets ────────────────────────────────────
-
   static Future<List<ChildPetModel>> getChildPets(String childId) async {
     final response = await supabase
         .from('child_pets')
@@ -43,22 +41,16 @@ class PetService {
     required String petId,
     required int price,
   }) async {
-    // Deduct coins
     await supabase.rpc('deduct_coins', params: {
       'child_id_input': childId,
       'coins_input': price,
     });
-
-    // Add pet to child
     await supabase.from('child_pets').insert({
       'child_id': childId,
       'pet_id': petId,
-      'xp': 0,
-      'level': 1,
     });
   }
 
-  // Set active pet
   static Future<void> setActivePet({
     required String childId,
     required String petId,
@@ -69,39 +61,7 @@ class PetService {
         .eq('id', childId);
   }
 
-  // Add XP to active pet when quiz completed
-  static Future<void> addXp({
-    required String childId,
-    required String petId,
-    required int xpToAdd,
-  }) async {
-    // Get current XP
-    final response = await supabase
-        .from('child_pets')
-        .select('xp, level')
-        .eq('child_id', childId)
-        .eq('pet_id', petId)
-        .single();
-
-    final currentXp = (response['xp'] ?? 0) + xpToAdd;
-    int newLevel = response['level'] ?? 1;
-
-    // Level up logic
-    if (currentXp >= 300) {
-      newLevel = 3;
-    } else if (currentXp >= 100) {
-      newLevel = 2;
-    }
-
-    await supabase
-        .from('child_pets')
-        .update({'xp': currentXp, 'level': newLevel})
-        .eq('child_id', childId)
-        .eq('pet_id', petId);
-  }
-
   // ── Admin ─────────────────────────────────────────
-
   static Future<void> createPet({
     required String name,
     required int price,
