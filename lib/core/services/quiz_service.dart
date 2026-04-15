@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/quiz_model.dart';
 import 'pet_service.dart';
+import 'leaderboard_service.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -143,6 +145,19 @@ class QuizService {
         'child_id_input': childId,
         'coins_input': coinsEarned,
       });
+    }
+
+    // Update leaderboard
+    if (firstAttempt) {
+      try {
+        await LeaderboardService.updateAfterQuiz(
+          childId: childId,
+          coinsEarned: coinsEarned,
+          correctAnswers: score,
+        );
+      } catch (e) {
+        debugPrint('Leaderboard update error: $e');
+      }
     }
 
     return (coinsEarned: coinsEarned, isFirstAttempt: firstAttempt);

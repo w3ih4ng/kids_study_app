@@ -66,6 +66,10 @@ dependencies:
   http: ^1.2.0
   syncfusion_flutter_pdf: ^27.1.48
 
+  # for QR
+  fl_chart: ^0.69.0
+  qr_flutter: ^4.1.0
+
   path_provider: ^2.1.3
 
 dev_dependencies:
