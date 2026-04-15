@@ -4,7 +4,7 @@ class ComicModel {
   final String? author;
   final String? description;
   final String? coverUrl;
-  final List<String> pages;
+  final String? pdfUrl;
   final DateTime createdAt;
 
   ComicModel({
@@ -13,7 +13,7 @@ class ComicModel {
     this.author,
     this.description,
     this.coverUrl,
-    this.pages = const [],
+    this.pdfUrl,
     required this.createdAt,
   });
 
@@ -24,9 +24,7 @@ class ComicModel {
       author: map['author'],
       description: map['description'],
       coverUrl: map['cover_url'],
-      pages: map['pages'] != null
-          ? List<String>.from(map['pages'])
-          : [],
+      pdfUrl: map['pdf_url'],
       createdAt: DateTime.parse(map['created_at']),
     );
   }

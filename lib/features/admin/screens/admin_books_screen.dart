@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,7 +24,9 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
   final _authorController = TextEditingController();
   final _descController = TextEditingController();
   String? _coverUrl;
+  String? _pdfUrl;
   bool _isUploading = false;
+  String _uploadStatus = '';
 
   @override
   void initState() {
@@ -41,8 +45,7 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
     }
   }
 
-  Future<String?> _uploadImage(
-      StateSetter setModalState, String prefix) async {
+  Future<String?> _uploadCoverImage(StateSetter setModalState) async {
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -53,22 +56,22 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            const Text('Select Image',
-                style:
-                TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Select Cover Image',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             ListTile(
               leading: const CircleAvatar(
                   backgroundColor: AppTheme.primary,
-                  child:
-                  Icon(Icons.camera_alt, color: Colors.white)),
+                  child: Icon(Icons.camera_alt, color: Colors.white)),
               title: const Text('Take a Photo'),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const CircleAvatar(
                   backgroundColor: AppTheme.secondary,
-                  child: Icon(Icons.photo_library, color: Colors.white)),
+                  child:
+                  Icon(Icons.photo_library, color: Colors.white)),
               title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
@@ -81,14 +84,18 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
     if (source == null) return null;
 
     final picked = await picker.pickImage(
-        source: source, maxWidth: 1024, imageQuality: 80);
+        source: source, maxWidth: 512, imageQuality: 80);
     if (picked == null) return null;
 
-    setModalState(() => _isUploading = true);
+    setModalState(() {
+      _isUploading = true;
+      _uploadStatus = 'Uploading cover...';
+    });
+
     try {
       final bytes = await picked.readAsBytes();
       final fileName =
-          '${prefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          'cover_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       await Supabase.instance.client.storage
           .from('comics')
@@ -99,13 +106,75 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
           .from('comics')
           .getPublicUrl(fileName);
 
-      setModalState(() => _isUploading = false);
+      setModalState(() {
+        _coverUrl = url;
+        _isUploading = false;
+        _uploadStatus = '';
+      });
       return url;
     } catch (e) {
-      setModalState(() => _isUploading = false);
+      setModalState(() {
+        _isUploading = false;
+        _uploadStatus = '';
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Upload failed: $e')));
+      }
+      return null;
+    }
+  }
+
+  Future<String?> _uploadPdf(StateSetter setModalState) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result == null || result.files.isEmpty) return null;
+
+    setModalState(() {
+      _isUploading = true;
+      _uploadStatus = 'Uploading PDF...';
+    });
+
+    try {
+      final file = File(result.files.single.path!);
+      final bytes = await file.readAsBytes();
+      final fileName =
+          'book_${DateTime.now().millisecondsSinceEpoch}.pdf';
+
+      await Supabase.instance.client.storage
+          .from('pdfs')
+          .uploadBinary(fileName, bytes,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'application/pdf',
+          ));
+
+      final url = Supabase.instance.client.storage
+          .from('pdfs')
+          .getPublicUrl(fileName);
+
+      setModalState(() {
+        _pdfUrl = url;
+        _isUploading = false;
+        _uploadStatus = '';
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('PDF uploaded successfully!')));
+      }
+      return url;
+    } catch (e) {
+      setModalState(() {
+        _isUploading = false;
+        _uploadStatus = '';
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('PDF upload failed: $e')));
       }
       return null;
     }
@@ -117,11 +186,13 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
       _authorController.text = comic.author ?? '';
       _descController.text = comic.description ?? '';
       _coverUrl = comic.coverUrl;
+      _pdfUrl = comic.pdfUrl;
     } else {
       _titleController.clear();
       _authorController.clear();
       _descController.clear();
       _coverUrl = null;
+      _pdfUrl = null;
     }
 
     await showModalBottomSheet(
@@ -132,7 +203,9 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
       builder: (_) => StatefulBuilder(
         builder: (context, setModalState) => Padding(
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 20,
+            left: 20,
+            right: 20,
+            top: 20,
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: SingleChildScrollView(
@@ -144,15 +217,15 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
+
                 // Cover image
+                const Text('Cover Image',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: () async {
-                    final url =
-                    await _uploadImage(setModalState, 'cover');
-                    if (url != null) {
-                      setModalState(() => _coverUrl = url);
-                    }
-                  },
+                  onTap: _isUploading
+                      ? null
+                      : () => _uploadCoverImage(setModalState),
                   child: Container(
                     height: 160,
                     decoration: BoxDecoration(
@@ -161,19 +234,39 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                       border: Border.all(
                           color: AppTheme.booksColor.withOpacity(0.3)),
                     ),
-                    child: _isUploading
-                        ? const Center(
-                        child: CircularProgressIndicator())
-                        : _coverUrl != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(_coverUrl!,
-                          fit: BoxFit.cover,
-                          width: double.infinity),
+                    child: _coverUrl != null
+                        ? Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _coverUrl!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 160,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius:
+                              BorderRadius.circular(8),
+                            ),
+                            child: const Text('Tap to change',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11)),
+                          ),
+                        ),
+                      ],
                     )
                         : const Column(
-                      mainAxisAlignment:
-                      MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.add_photo_alternate,
                             size: 40,
@@ -187,6 +280,83 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
+                // PDF Upload
+                const Text('Book PDF',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _isUploading
+                      ? null
+                      : () => _uploadPdf(setModalState),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _pdfUrl != null
+                          ? AppTheme.success.withOpacity(0.1)
+                          : AppTheme.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _pdfUrl != null
+                            ? AppTheme.success
+                            : AppTheme.border,
+                      ),
+                    ),
+                    child: _isUploading &&
+                        _uploadStatus.contains('PDF')
+                        ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 12),
+                        Text('Uploading PDF...'),
+                      ],
+                    )
+                        : Row(
+                      children: [
+                        Icon(
+                          _pdfUrl != null
+                              ? Icons.picture_as_pdf
+                              : Icons.upload_file,
+                          color: _pdfUrl != null
+                              ? AppTheme.success
+                              : AppTheme.textSecondary,
+                          size: 32,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _pdfUrl != null
+                                    ? 'PDF uploaded ✓'
+                                    : 'Upload PDF file',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: _pdfUrl != null
+                                      ? AppTheme.success
+                                      : AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                _pdfUrl != null
+                                    ? 'Tap to replace'
+                                    : 'Tap to select a PDF file',
+                                style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 TextField(
                   controller: _titleController,
                   decoration: const InputDecoration(
@@ -210,12 +380,21 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () async {
-                    if (_titleController.text.trim().isEmpty) return;
+                  onPressed: _isUploading
+                      ? null
+                      : () async {
+                    if (_titleController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                              Text('Please enter a title')));
+                      return;
+                    }
                     if (comic == null) {
                       await ComicService.createComic(
                         title: _titleController.text.trim(),
-                        author: _authorController.text.trim().isEmpty
+                        author:
+                        _authorController.text.trim().isEmpty
                             ? null
                             : _authorController.text.trim(),
                         description:
@@ -223,6 +402,7 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                             ? null
                             : _descController.text.trim(),
                         coverUrl: _coverUrl,
+                        pdfUrl: _pdfUrl,
                       );
                     } else {
                       await ComicService.updateComic(comic.id, {
@@ -236,6 +416,7 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                             ? null
                             : _descController.text.trim(),
                         'cover_url': _coverUrl,
+                        'pdf_url': _pdfUrl,
                       });
                     }
                     if (context.mounted) Navigator.pop(context);
@@ -255,15 +436,6 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _managePages(ComicModel comic) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (_) => AdminBookPagesScreen(comic: comic)),
-    );
-    _load();
   }
 
   Future<void> _delete(ComicModel comic) async {
@@ -326,17 +498,11 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                   style: const TextStyle(
                       fontWeight: FontWeight.bold)),
               subtitle: Text(
-                  '${comic.pages.length} pages · ${comic.author ?? 'Unknown author'}'),
+                '${comic.author ?? 'Unknown author'} · ${comic.pdfUrl != null ? '📄 PDF ready' : '⚠️ No PDF'}',
+              ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Manage pages
-                  IconButton(
-                    icon: const Icon(Icons.auto_stories,
-                        color: AppTheme.booksColor),
-                    tooltip: 'Manage Pages',
-                    onPressed: () => _managePages(comic),
-                  ),
                   IconButton(
                     icon: const Icon(Icons.edit,
                         color: AppTheme.textSecondary),
@@ -356,200 +522,6 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showForm(),
         backgroundColor: AppTheme.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
-  }
-}
-
-// ── Admin Book Pages Screen ───────────────────────────────────────
-
-class AdminBookPagesScreen extends StatefulWidget {
-  final ComicModel comic;
-  const AdminBookPagesScreen({super.key, required this.comic});
-
-  @override
-  State<AdminBookPagesScreen> createState() => _AdminBookPagesScreenState();
-}
-
-class _AdminBookPagesScreenState extends State<AdminBookPagesScreen> {
-  late ComicModel _comic;
-  bool _isUploading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _comic = widget.comic;
-  }
-
-  Future<void> _reload() async {
-    final comics = await ComicService.getComics();
-    final updated = comics.firstWhere((c) => c.id == _comic.id);
-    if (mounted) setState(() => _comic = updated);
-  }
-
-  Future<void> _addPage() async {
-    final picker = ImagePicker();
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            const Text('Add Page',
-                style:
-                TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const CircleAvatar(
-                  backgroundColor: AppTheme.primary,
-                  child:
-                  Icon(Icons.camera_alt, color: Colors.white)),
-              title: const Text('Take a Photo'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const CircleAvatar(
-                  backgroundColor: AppTheme.secondary,
-                  child: Icon(Icons.photo_library, color: Colors.white)),
-              title: const Text('Choose from Gallery'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-
-    if (source == null) return;
-
-    final picked = await picker.pickImage(
-        source: source, maxWidth: 1024, imageQuality: 85);
-    if (picked == null) return;
-
-    setState(() => _isUploading = true);
-    try {
-      final bytes = await picked.readAsBytes();
-      final fileName =
-          'page_${_comic.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-      await Supabase.instance.client.storage
-          .from('comics')
-          .uploadBinary(fileName, bytes,
-          fileOptions: const FileOptions(upsert: true));
-
-      final url = Supabase.instance.client.storage
-          .from('comics')
-          .getPublicUrl(fileName);
-
-      await ComicService.addPage(
-        comicId: _comic.id,
-        pageUrl: url,
-        currentPages: _comic.pages,
-      );
-
-      await _reload();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Upload failed: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_comic.title),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(24),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              '${_comic.pages.length} pages',
-              style:
-              const TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ),
-        ),
-      ),
-      body: _isUploading
-          ? const LoadingWidget(message: 'Uploading page...')
-          : _comic.pages.isEmpty
-          ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.auto_stories,
-                size: 72, color: AppTheme.textSecondary),
-            const SizedBox(height: 16),
-            const Text('No pages yet',
-                style: TextStyle(
-                    color: AppTheme.textSecondary)),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _addPage,
-              icon: const Icon(Icons.add),
-              label: const Text('Add First Page'),
-            ),
-          ],
-        ),
-      )
-          : ReorderableListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _comic.pages.length,
-        onReorder: (oldIndex, newIndex) async {
-          if (newIndex > oldIndex) newIndex--;
-          final pages = List<String>.from(_comic.pages);
-          final page = pages.removeAt(oldIndex);
-          pages.insert(newIndex, page);
-          await ComicService.updateComic(
-              _comic.id, {'pages': pages});
-          _reload();
-        },
-        itemBuilder: (_, i) {
-          return Card(
-            key: ValueKey(_comic.pages[i]),
-            margin: const EdgeInsets.only(bottom: 10),
-            child: ListTile(
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.network(
-                  _comic.pages[i],
-                  width: 50,
-                  height: 70,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              title: Text('Page ${i + 1}',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold)),
-              subtitle: const Text('Drag to reorder'),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete,
-                    color: AppTheme.danger),
-                onPressed: () async {
-                  await ComicService.removePage(
-                    comicId: _comic.id,
-                    pageIndex: i,
-                    currentPages: _comic.pages,
-                  );
-                  _reload();
-                },
-              ),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addPage,
-        backgroundColor: AppTheme.booksColor,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );

@@ -17,45 +17,20 @@ class ComicService {
     String? author,
     String? description,
     String? coverUrl,
-    List<String> pages = const [],
+    String? pdfUrl,
   }) async {
     await supabase.from('comics').insert({
       'title': title,
       'author': author,
       'description': description,
       'cover_url': coverUrl,
-      'pages': pages,
+      'pdf_url': pdfUrl,
     });
   }
 
   static Future<void> updateComic(
       String id, Map<String, dynamic> data) async {
     await supabase.from('comics').update(data).eq('id', id);
-  }
-
-  static Future<void> addPage({
-    required String comicId,
-    required String pageUrl,
-    required List<String> currentPages,
-  }) async {
-    final updatedPages = [...currentPages, pageUrl];
-    await supabase
-        .from('comics')
-        .update({'pages': updatedPages})
-        .eq('id', comicId);
-  }
-
-  static Future<void> removePage({
-    required String comicId,
-    required int pageIndex,
-    required List<String> currentPages,
-  }) async {
-    final updatedPages = List<String>.from(currentPages)
-      ..removeAt(pageIndex);
-    await supabase
-        .from('comics')
-        .update({'pages': updatedPages})
-        .eq('id', comicId);
   }
 
   static Future<void> deleteComic(String id) async {

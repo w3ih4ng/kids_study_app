@@ -125,14 +125,24 @@ class _BookListScreenState extends State<BookListScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.auto_stories,
-                          size: 12,
-                          color: AppTheme.textSecondary),
+                      Icon(
+                        comic.pdfUrl != null
+                            ? Icons.picture_as_pdf
+                            : Icons.hourglass_empty,
+                        size: 12,
+                        color: comic.pdfUrl != null
+                            ? AppTheme.success
+                            : AppTheme.textSecondary,
+                      ),
                       const SizedBox(width: 4),
-                      Text('${comic.pages.length} pages',
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.textSecondary)),
+                      Text(
+                        comic.pdfUrl != null ? 'PDF Ready' : 'Coming soon',
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: comic.pdfUrl != null
+                                ? AppTheme.success
+                                : AppTheme.textSecondary),
+                      ),
                     ],
                   ),
                 ],
