@@ -4,6 +4,7 @@ class ChildModel {
   final String nickname;
   final String? avatarUrl;
   final int coins;
+  final String? activePetId;
 
   ChildModel({
     required this.id,
@@ -11,6 +12,7 @@ class ChildModel {
     required this.nickname,
     this.avatarUrl,
     this.coins = 0,
+    this.activePetId,
   });
 
   factory ChildModel.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class ChildModel {
       nickname: map['nickname'],
       avatarUrl: map['avatar_url'],
       coins: map['coins'] ?? 0,
+      activePetId: map['active_pet_id'],
     );
   }
 }

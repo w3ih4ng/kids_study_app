@@ -1,13 +1,344 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/constants/app_theme.dart';
+import '../../../core/services/pet_service.dart';
+import '../../../core/widgets/animated_pet_widget.dart';
+import '../../../core/widgets/empty_state_widget.dart';
+import '../../../core/widgets/loading_widget.dart';
+import '../../../models/pet_model.dart';
 
-class AdminPetsScreen extends StatelessWidget {
+class AdminPetsScreen extends StatefulWidget {
   const AdminPetsScreen({super.key});
+
+  @override
+  State<AdminPetsScreen> createState() => _AdminPetsScreenState();
+}
+
+class _AdminPetsScreenState extends State<AdminPetsScreen> {
+  List<PetModel> _pets = [];
+  bool _isLoading = true;
+  bool _isUploading = false;
+
+  final _nameController = TextEditingController();
+  final _priceController = TextEditingController(text: '100');
+  final _descController = TextEditingController();
+  String? _imageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _isLoading = true);
+    final pets = await PetService.getAllPets();
+    if (mounted) setState(() { _pets = pets; _isLoading = false; });
+  }
+
+  Future<String?> _pickAndUploadImage(StateSetter setModalState) async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            const Text('Select Pet Image',
+                style:
+                TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const CircleAvatar(
+                  backgroundColor: AppTheme.primary,
+                  child:
+                  Icon(Icons.camera_alt, color: Colors.white)),
+              title: const Text('Take a Photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const CircleAvatar(
+                  backgroundColor: AppTheme.secondary,
+                  child: Icon(Icons.photo_library, color: Colors.white)),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return null;
+
+    final picked = await picker.pickImage(
+        source: source, maxWidth: 512, imageQuality: 80);
+    if (picked == null) return null;
+
+    setModalState(() => _isUploading = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      final fileName = 'pet_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      await Supabase.instance.client.storage
+          .from('pets')
+          .uploadBinary(fileName, bytes,
+          fileOptions: const FileOptions(upsert: true));
+
+      final url = Supabase.instance.client.storage
+          .from('pets')
+          .getPublicUrl(fileName);
+
+      setModalState(() {
+        _imageUrl = url;
+        _isUploading = false;
+      });
+      return url;
+    } catch (e) {
+      setModalState(() => _isUploading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Upload failed: $e')));
+      }
+      return null;
+    }
+  }
+
+  Future<void> _showForm({PetModel? pet}) async {
+    if (pet != null) {
+      _nameController.text = pet.name;
+      _priceController.text = pet.price.toString();
+      _descController.text = pet.description ?? '';
+      _imageUrl = pet.imageUrl;
+    } else {
+      _nameController.clear();
+      _priceController.text = '100';
+      _descController.clear();
+      _imageUrl = null;
+    }
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(pet == null ? 'Add New Pet' : 'Edit Pet',
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                // Pet image preview
+                Center(
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: AppTheme.petsColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: AppTheme.petsColor.withOpacity(0.3)),
+                        ),
+                        child: _imageUrl != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(_imageUrl!,
+                              fit: BoxFit.contain),
+                        )
+                            : const Icon(Icons.pets,
+                            size: 48, color: AppTheme.petsColor),
+                      ),
+                      GestureDetector(
+                        onTap: _isUploading
+                            ? null
+                            : () =>
+                            _pickAndUploadImage(setModalState),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: _isUploading
+                              ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2))
+                              : const Icon(Icons.camera_alt,
+                              color: Colors.white, size: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Center(
+                  child: Text(
+                    'Tip: Upload a GIF for animated pets!',
+                    style: TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                      labelText: 'Pet Name',
+                      border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                      labelText: 'Price (Coins)',
+                      border: OutlineInputBorder(),
+                      prefixIcon:
+                      Icon(Icons.monetization_on)),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _descController,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                      labelText: 'Description (optional)',
+                      border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_nameController.text.trim().isEmpty) return;
+                    if (pet == null) {
+                      await PetService.createPet(
+                        name: _nameController.text.trim(),
+                        price:
+                        int.tryParse(_priceController.text) ?? 100,
+                        imageUrl: _imageUrl,
+                        description: _descController.text.trim(),
+                      );
+                    } else {
+                      await PetService.updatePet(pet.id, {
+                        'name': _nameController.text.trim(),
+                        'price':
+                        int.tryParse(_priceController.text) ?? 100,
+                        'image_url': _imageUrl,
+                        'description': _descController.text.trim(),
+                      });
+                    }
+                    if (context.mounted) Navigator.pop(context);
+                    _load();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child:
+                  Text(pet == null ? 'Add Pet' : 'Update Pet'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _delete(PetModel pet) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Pet'),
+        content: Text('Delete "${pet.name}"?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete',
+                  style: TextStyle(color: AppTheme.danger))),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await PetService.deletePet(pet.id);
+      _load();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Manage Pets')),
-      body: const Center(child: Text('Manage Pets — Student 3 builds this')),
+      body: _isLoading
+          ? const LoadingWidget()
+          : _pets.isEmpty
+          ? EmptyStateWidget(
+        message: 'No pets yet.\nTap + to add one.',
+        icon: Icons.pets,
+        actionLabel: 'Add Pet',
+        onAction: () => _showForm(),
+      )
+          : ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _pets.length,
+        itemBuilder: (_, i) {
+          final pet = _pets[i];
+          return Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: ListTile(
+              leading: AnimatedPetWidget(
+                  imageUrl: pet.imageUrl,
+                  size: 48,
+                  animate: false),
+              title: Text(pet.name,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold)),
+              subtitle: Text(
+                  '${pet.price} coins · ${pet.description ?? 'No description'}'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit,
+                        color: AppTheme.textSecondary),
+                    onPressed: () => _showForm(pet: pet),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete,
+                        color: AppTheme.danger),
+                    onPressed: () => _delete(pet),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showForm(),
+        backgroundColor: AppTheme.primary,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 }
