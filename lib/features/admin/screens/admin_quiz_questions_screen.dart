@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_theme.dart';
+import '../../../core/services/quiz_image_service.dart';
 import '../../../core/services/quiz_service.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../models/quiz_model.dart';
@@ -13,16 +14,25 @@ class AdminQuizQuestionsScreen extends StatefulWidget {
       _AdminQuizQuestionsScreenState();
 }
 
-class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
+class _AdminQuizQuestionsScreenState
+    extends State<AdminQuizQuestionsScreen> {
   late QuizModel _quiz;
   bool _isLoading = false;
 
+  // Form controllers
   final _questionController = TextEditingController();
   final _optionAController = TextEditingController();
   final _optionBController = TextEditingController();
   final _optionCController = TextEditingController();
   final _optionDController = TextEditingController();
   String _correctAnswer = 'a';
+
+  // Image urls for form
+  String? _questionImageUrl;
+  String? _optionAImageUrl;
+  String? _optionBImageUrl;
+  String? _optionCImageUrl;
+  String? _optionDImageUrl;
 
   @override
   void initState() {
@@ -34,7 +44,12 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
     setState(() => _isLoading = true);
     final quizzes = await QuizService.getQuizzes();
     final updated = quizzes.firstWhere((q) => q.id == _quiz.id);
-    if (mounted) setState(() { _quiz = updated; _isLoading = false; });
+    if (mounted) {
+      setState(() {
+        _quiz = updated;
+        _isLoading = false;
+      });
+    }
   }
 
   void _clearForm() {
@@ -44,130 +59,130 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
     _optionCController.clear();
     _optionDController.clear();
     _correctAnswer = 'a';
+    _questionImageUrl = null;
+    _optionAImageUrl = null;
+    _optionBImageUrl = null;
+    _optionCImageUrl = null;
+    _optionDImageUrl = null;
   }
 
-  Future<void> _showAddQuestion() async {
-    _clearForm();
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            left: 20, right: 20, top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Add Question',
-                    style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _questionController,
-                  maxLines: 2,
-                  decoration: const InputDecoration(
-                      labelText: 'Question',
-                      border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
-                ...[
-                  ('A', _optionAController),
-                  ('B', _optionBController),
-                  ('C', _optionCController),
-                  ('D', _optionDController),
-                ].map((e) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: TextField(
-                    controller: e.$2,
-                    decoration: InputDecoration(
-                      labelText: 'Option ${e.$1}',
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                )),
-                // Correct answer selector
-                const Text('Correct Answer:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Row(
-                  children: ['a', 'b', 'c', 'd'].map((key) {
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () =>
-                            setModalState(() => _correctAnswer = key),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _correctAnswer == key
-                                ? AppTheme.primary
-                                : AppTheme.background,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color: _correctAnswer == key
-                                    ? AppTheme.primary
-                                    : AppTheme.border),
-                          ),
-                          child: Center(
-                            child: Text(
-                              key.toUpperCase(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _correctAnswer == key
-                                    ? Colors.white
-                                    : AppTheme.textPrimary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_questionController.text.trim().isEmpty) return;
-                    await QuizService.addQuestion(
-                      quizId: _quiz.id,
-                      question: _questionController.text.trim(),
-                      optionA: _optionAController.text.trim(),
-                      optionB: _optionBController.text.trim(),
-                      optionC: _optionCController.text.trim(),
-                      optionD: _optionDController.text.trim(),
-                      correctAnswer: _correctAnswer,
-                    );
-                    if (context.mounted) Navigator.pop(context);
-                    _reload();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text('Add Question'),
-                ),
-              ],
+  // Upload image and update state
+  Future<void> _uploadImage({
+    required StateSetter setModalState,
+    required String prefix,
+    required Function(String url) onUploaded,
+  }) async {
+    final url = await QuizImageService.showSourcePicker(context);
+    if (url != null) {
+      setModalState(() => onUploaded(url));
+    }
+  }
+
+  // Small image upload button
+  Widget _imageUploadButton({
+    required String label,
+    required String? imageUrl,
+    required VoidCallback onTap,
+    required VoidCallback onRemove,
+  }) {
+    if (imageUrl != null) {
+      return Stack(
+        alignment: Alignment.topRight,
+        children: [
+          GestureDetector(
+            onTap: () => _showFullImage(imageUrl),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrl,
+                height: 80,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
+          GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              margin: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child:
+              const Icon(Icons.close, color: Colors.white, size: 12),
+            ),
+          ),
+        ],
+      );
+    }
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.add_photo_alternate, size: 16),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      style: OutlinedButton.styleFrom(
+        padding:
+        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        minimumSize: const Size(0, 32),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _showFullImage(String url) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              child: Image.network(url,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                  height: double.infinity),
+            ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close,
+                      color: Colors.white, size: 24),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Future<void> _showEditQuestion(QuizQuestionModel question) async {
-    _questionController.text = question.question;
-    _optionAController.text = question.optionA;
-    _optionBController.text = question.optionB;
-    _optionCController.text = question.optionC;
-    _optionDController.text = question.optionD;
-    _correctAnswer = question.correctAnswer;
+  Future<void> _showQuestionForm({QuizQuestionModel? question}) async {
+    if (question != null) {
+      _questionController.text = question.question;
+      _optionAController.text = question.optionA;
+      _optionBController.text = question.optionB;
+      _optionCController.text = question.optionC;
+      _optionDController.text = question.optionD;
+      _correctAnswer = question.correctAnswer;
+      _questionImageUrl = question.questionImageUrl;
+      _optionAImageUrl = question.optionAImageUrl;
+      _optionBImageUrl = question.optionBImageUrl;
+      _optionCImageUrl = question.optionCImageUrl;
+      _optionDImageUrl = question.optionDImageUrl;
+    } else {
+      _clearForm();
+    }
 
     await showModalBottomSheet(
       context: context,
@@ -177,7 +192,9 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
       builder: (_) => StatefulBuilder(
         builder: (context, setModalState) => Padding(
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 20,
+            left: 20,
+            right: 20,
+            top: 20,
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: SingleChildScrollView(
@@ -185,82 +202,240 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Edit Question',
-                    style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  question == null ? 'Add Question' : 'Edit Question',
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
+
+                // ── Question ──────────────────────────────
+                const Text('Question',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
                 TextField(
                   controller: _questionController,
                   maxLines: 2,
                   decoration: const InputDecoration(
-                      labelText: 'Question',
+                      hintText: 'Enter question text (optional if image provided)',
                       border: OutlineInputBorder()),
                 ),
-                const SizedBox(height: 12),
-                ...[
-                  ('A', _optionAController),
-                  ('B', _optionBController),
-                  ('C', _optionCController),
-                  ('D', _optionDController),
-                ].map((e) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: TextField(
-                    controller: e.$2,
-                    decoration: InputDecoration(
-                      labelText: 'Option ${e.$1}',
-                      border: const OutlineInputBorder(),
-                    ),
+                const SizedBox(height: 8),
+                _imageUploadButton(
+                  label: 'Add question image',
+                  imageUrl: _questionImageUrl,
+                  onTap: () => _uploadImage(
+                    setModalState: setModalState,
+                    prefix: 'question',
+                    onUploaded: (url) => _questionImageUrl = url,
                   ),
-                )),
-                const Text('Correct Answer:',
+                  onRemove: () =>
+                      setModalState(() => _questionImageUrl = null),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Options ───────────────────────────────
+                const Text('Options',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Row(
-                  children: ['a', 'b', 'c', 'd'].map((key) {
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () =>
-                            setModalState(() => _correctAnswer = key),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _correctAnswer == key
-                                ? AppTheme.primary
-                                : AppTheme.background,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color: _correctAnswer == key
-                                    ? AppTheme.primary
-                                    : AppTheme.border),
-                          ),
-                          child: Center(
-                            child: Text(
-                              key.toUpperCase(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _correctAnswer == key
-                                    ? Colors.white
-                                    : AppTheme.textPrimary,
+
+                ...['a', 'b', 'c', 'd'].map((key) {
+                  final controller = {
+                    'a': _optionAController,
+                    'b': _optionBController,
+                    'c': _optionCController,
+                    'd': _optionDController,
+                  }[key]!;
+
+                  final imageUrl = {
+                    'a': _optionAImageUrl,
+                    'b': _optionBImageUrl,
+                    'c': _optionCImageUrl,
+                    'd': _optionDImageUrl,
+                  }[key];
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _correctAnswer == key
+                          ? AppTheme.success.withOpacity(0.05)
+                          : AppTheme.background,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _correctAnswer == key
+                            ? AppTheme.success
+                            : AppTheme.border,
+                        width: _correctAnswer == key ? 2 : 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            // Correct answer selector
+                            GestureDetector(
+                              onTap: () => setModalState(
+                                      () => _correctAnswer = key),
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: _correctAnswer == key
+                                      ? AppTheme.success
+                                      : AppTheme.background,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: _correctAnswer == key
+                                        ? AppTheme.success
+                                        : AppTheme.border,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    key.toUpperCase(),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: _correctAnswer == key
+                                          ? Colors.white
+                                          : AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: controller,
+                                decoration: InputDecoration(
+                                  hintText:
+                                  'Option ${key.toUpperCase()} text (optional)',
+                                  border: const OutlineInputBorder(),
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.all(10),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _imageUploadButton(
+                          label: 'Add image for option ${key.toUpperCase()}',
+                          imageUrl: imageUrl,
+                          onTap: () => _uploadImage(
+                            setModalState: setModalState,
+                            prefix: 'option_$key',
+                            onUploaded: (url) {
+                              switch (key) {
+                                case 'a':
+                                  _optionAImageUrl = url;
+                                  break;
+                                case 'b':
+                                  _optionBImageUrl = url;
+                                  break;
+                                case 'c':
+                                  _optionCImageUrl = url;
+                                  break;
+                                case 'd':
+                                  _optionDImageUrl = url;
+                                  break;
+                              }
+                            },
                           ),
+                          onRemove: () => setModalState(() {
+                            switch (key) {
+                              case 'a':
+                                _optionAImageUrl = null;
+                                break;
+                              case 'b':
+                                _optionBImageUrl = null;
+                                break;
+                              case 'c':
+                                _optionCImageUrl = null;
+                                break;
+                              case 'd':
+                                _optionDImageUrl = null;
+                                break;
+                            }
+                          }),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                // ── Correct answer hint ───────────────────
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.success.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle,
+                          color: AppTheme.success, size: 16),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Correct answer: Option ${_correctAnswer.toUpperCase()}',
+                          style: const TextStyle(
+                              color: AppTheme.success, fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    );
-                  }).toList(),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
+
+                // ── Save button ───────────────────────────
                 ElevatedButton(
                   onPressed: () async {
-                    await QuizService.updateQuestion(question.id, {
-                      'question': _questionController.text.trim(),
-                      'option_a': _optionAController.text.trim(),
-                      'option_b': _optionBController.text.trim(),
-                      'option_c': _optionCController.text.trim(),
-                      'option_d': _optionDController.text.trim(),
-                      'correct_answer': _correctAnswer,
-                    });
+                    // Validate at least question text or image
+                    if (_questionController.text.trim().isEmpty &&
+                        _questionImageUrl == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                'Please enter a question or add an image')),
+                      );
+                      return;
+                    }
+
+                    if (question == null) {
+                      await QuizService.addQuestion(
+                        quizId: _quiz.id,
+                        question: _questionController.text.trim(),
+                        questionImageUrl: _questionImageUrl,
+                        optionA: _optionAController.text.trim(),
+                        optionAImageUrl: _optionAImageUrl,
+                        optionB: _optionBController.text.trim(),
+                        optionBImageUrl: _optionBImageUrl,
+                        optionC: _optionCController.text.trim(),
+                        optionCImageUrl: _optionCImageUrl,
+                        optionD: _optionDController.text.trim(),
+                        optionDImageUrl: _optionDImageUrl,
+                        correctAnswer: _correctAnswer,
+                      );
+                    } else {
+                      await QuizService.updateQuestion(question.id, {
+                        'question': _questionController.text.trim(),
+                        'question_image_url': _questionImageUrl,
+                        'option_a': _optionAController.text.trim(),
+                        'option_a_image_url': _optionAImageUrl,
+                        'option_b': _optionBController.text.trim(),
+                        'option_b_image_url': _optionBImageUrl,
+                        'option_c': _optionCController.text.trim(),
+                        'option_c_image_url': _optionCImageUrl,
+                        'option_d': _optionDController.text.trim(),
+                        'option_d_image_url': _optionDImageUrl,
+                        'correct_answer': _correctAnswer,
+                      });
+                    }
                     if (context.mounted) Navigator.pop(context);
                     _reload();
                   },
@@ -269,7 +444,8 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  child: const Text('Update Question'),
+                  child: Text(
+                      question == null ? 'Add Question' : 'Update Question'),
                 ),
               ],
             ),
@@ -290,7 +466,8 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               '${_quiz.questions.length} questions · ${_quiz.coinValue} coins total',
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style:
+              const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
         ),
@@ -306,10 +483,11 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
                 size: 72, color: AppTheme.textSecondary),
             const SizedBox(height: 16),
             const Text('No questions yet',
-                style: TextStyle(color: AppTheme.textSecondary)),
+                style:
+                TextStyle(color: AppTheme.textSecondary)),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _showAddQuestion,
+              onPressed: () => _showQuestionForm(),
               child: const Text('Add Question'),
             ),
           ],
@@ -327,11 +505,13 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Question header
                   Row(
                     children: [
                       CircleAvatar(
                         radius: 14,
-                        backgroundColor: AppTheme.primary.withOpacity(0.1),
+                        backgroundColor:
+                        AppTheme.primary.withOpacity(0.1),
                         child: Text('${i + 1}',
                             style: const TextStyle(
                                 fontSize: 12,
@@ -340,28 +520,57 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(q.question,
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            if (q.question.isNotEmpty)
+                              Text(q.question,
+                                  style: const TextStyle(
+                                      fontWeight:
+                                      FontWeight.bold)),
+                            if (q.questionImageUrl != null)
+                              GestureDetector(
+                                onTap: () => _showFullImage(
+                                    q.questionImageUrl!),
+                                child: ClipRRect(
+                                  borderRadius:
+                                  BorderRadius.circular(8),
+                                  child: Image.network(
+                                    q.questionImageUrl!,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                      // Edit button — ADD THIS
                       IconButton(
                         icon: const Icon(Icons.edit,
-                            color: AppTheme.textSecondary, size: 20),
-                        onPressed: () => _showEditQuestion(q),
+                            color: AppTheme.textSecondary,
+                            size: 20),
+                        onPressed: () =>
+                            _showQuestionForm(question: q),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete,
                             color: AppTheme.danger, size: 20),
                         onPressed: () async {
-                          await QuizService.deleteQuestion(q.id);
+                          await QuizService.deleteQuestion(
+                              q.id);
                           _reload();
                         },
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
+                  // Options
                   ...['a', 'b', 'c', 'd'].map((key) {
                     final isCorrect = q.correctAnswer == key;
+                    final imageUrl = q.optionImageUrl(key);
+                    final text = q.optionText(key);
+
                     return Container(
                       margin: const EdgeInsets.only(bottom: 4),
                       padding: const EdgeInsets.symmetric(
@@ -370,7 +579,8 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
                         color: isCorrect
                             ? AppTheme.success.withOpacity(0.1)
                             : AppTheme.background,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                        BorderRadius.circular(8),
                         border: Border.all(
                             color: isCorrect
                                 ? AppTheme.success
@@ -386,12 +596,28 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
                                     ? AppTheme.success
                                     : AppTheme.textPrimary),
                           ),
-                          Text(q.optionText(key)),
-                          if (isCorrect) ...[
-                            const Spacer(),
+                          Expanded(
+                            child: imageUrl != null
+                                ? GestureDetector(
+                              onTap: () => _showFullImage(imageUrl),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.network(
+                                  imageUrl,
+                                  height: 40,
+                                  width: 40,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            )
+                                : Text(
+                              text,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isCorrect)
                             const Icon(Icons.check_circle,
                                 color: AppTheme.success, size: 16),
-                          ]
                         ],
                       ),
                     );
@@ -403,7 +629,7 @@ class _AdminQuizQuestionsScreenState extends State<AdminQuizQuestionsScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddQuestion,
+        onPressed: () => _showQuestionForm(),
         backgroundColor: AppTheme.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),

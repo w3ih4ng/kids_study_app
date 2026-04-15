@@ -115,6 +115,44 @@ class _QuizScreenState extends State<QuizScreen> {
     return AppTheme.textSecondary;
   }
 
+  void _showFullImage(String url) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              child: Image.network(
+                url,
+                fit: BoxFit.contain,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close,
+                      color: Colors.white, size: 24),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final total = _questions.length;
@@ -152,7 +190,7 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -179,23 +217,47 @@ class _QuizScreenState extends State<QuizScreen> {
               decoration: BoxDecoration(
                 color: AppTheme.primary.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: AppTheme.primary.withOpacity(0.2)),
+                border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
               ),
-              child: Text(
-                _currentQuestion.question,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_currentQuestion.question.isNotEmpty)
+                    Text(
+                      _currentQuestion.question,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  if (_currentQuestion.questionImageUrl != null) ...[
+                    if (_currentQuestion.question.isNotEmpty)
+                      const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () => _showFullImage(
+                          _currentQuestion.questionImageUrl!),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          _currentQuestion.questionImageUrl!,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             const SizedBox(height: 24),
             ...['a', 'b', 'c', 'd'].map((key) {
+              final imageUrl = _currentQuestion.optionImageUrl(key);
+              final text = _currentQuestion.optionText(key);
+
               return GestureDetector(
                 onTap: () => _selectAnswer(key),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: _optionColor(key),
                     borderRadius: BorderRadius.circular(12),
@@ -205,8 +267,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     children: [
                       CircleAvatar(
                         radius: 14,
-                        backgroundColor:
-                        AppTheme.primary.withOpacity(0.1),
+                        backgroundColor: AppTheme.primary.withOpacity(0.1),
                         child: Text(key.toUpperCase(),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
@@ -216,16 +277,27 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          _currentQuestion.optionText(key),
+                        child: imageUrl != null
+                            ? GestureDetector(
+                          onTap: () => _showFullImage(imageUrl),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              imageUrl,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        )
+                            : Text(
+                          text,
                           style: TextStyle(
                             color: _optionTextColor(key),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                      if (_answered &&
-                          key == _currentQuestion.correctAnswer)
+                      if (_answered && key == _currentQuestion.correctAnswer)
                         const Icon(Icons.check_circle,
                             color: Colors.white, size: 20),
                       if (_answered &&
@@ -238,7 +310,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               );
             }),
-            const Spacer(),
+            const SizedBox(height: 24),
             if (_answered)
               ElevatedButton(
                 onPressed: _next,

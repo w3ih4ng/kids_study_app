@@ -36,19 +36,29 @@ class QuizService {
   static Future<void> addQuestion({
     required String quizId,
     required String question,
+    String? questionImageUrl,
     required String optionA,
+    String? optionAImageUrl,
     required String optionB,
+    String? optionBImageUrl,
     required String optionC,
+    String? optionCImageUrl,
     required String optionD,
+    String? optionDImageUrl,
     required String correctAnswer,
   }) async {
     await supabase.from('quiz_questions').insert({
       'quiz_id': quizId,
       'question': question,
+      'question_image_url': questionImageUrl,
       'option_a': optionA,
+      'option_a_image_url': optionAImageUrl,
       'option_b': optionB,
+      'option_b_image_url': optionBImageUrl,
       'option_c': optionC,
+      'option_c_image_url': optionCImageUrl,
       'option_d': optionD,
+      'option_d_image_url': optionDImageUrl,
       'correct_answer': correctAnswer,
     });
   }
@@ -57,7 +67,8 @@ class QuizService {
     await supabase.from('quizzes').update(data).eq('id', id);
   }
 
-  static Future<void> updateQuestion(String id, Map<String, dynamic> data) async {
+  static Future<void> updateQuestion(
+      String id, Map<String, dynamic> data) async {
     await supabase.from('quiz_questions').update(data).eq('id', id);
   }
 
