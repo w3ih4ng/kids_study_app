@@ -67,12 +67,14 @@ class PetService {
     required int price,
     String? imageUrl,
     String? description,
+    String? soundUrl,
   }) async {
     await supabase.from('pets').insert({
       'name': name,
       'price': price,
       'image_url': imageUrl,
       'description': description,
+      'sound_url': soundUrl,
     });
   }
 

@@ -4,6 +4,7 @@ class PetModel {
   final int price;
   final String? imageUrl;
   final String? description;
+  final String? soundUrl;
   final bool isAvailable;
 
   PetModel({
@@ -12,6 +13,7 @@ class PetModel {
     required this.price,
     this.imageUrl,
     this.description,
+    this.soundUrl,
     this.isAvailable = true,
   });
 
@@ -22,6 +24,7 @@ class PetModel {
       price: map['price'] ?? 0,
       imageUrl: map['image_url'],
       description: map['description'],
+      soundUrl: map['sound_url'],
       isAvailable: map['is_available'] ?? true,
     );
   }

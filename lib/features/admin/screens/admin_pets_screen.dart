@@ -22,6 +22,9 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
   bool _isLoading = true;
   bool _isUploading = false;
 
+  String? _soundUrl;
+  bool _isUploadingSound = false;
+
   final _nameController = TextEditingController();
   final _priceController = TextEditingController(text: '100');
   final _descController = TextEditingController();
@@ -194,11 +197,13 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
       _priceController.text = pet.price.toString();
       _descController.text = pet.description ?? '';
       _imageUrl = pet.imageUrl;
+      _soundUrl = pet.soundUrl;
     } else {
       _nameController.clear();
       _priceController.text = '100';
       _descController.clear();
       _imageUrl = null;
+      _soundUrl = null;
     }
 
     await showModalBottomSheet(
@@ -282,6 +287,79 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                const Text('Pet Sound',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _isUploadingSound
+                      ? null
+                      : () => _pickAndUploadSound(setModalState),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: _soundUrl != null
+                          ? AppTheme.success.withOpacity(0.1)
+                          : AppTheme.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _soundUrl != null
+                            ? AppTheme.success
+                            : AppTheme.border,
+                      ),
+                    ),
+                    child: _isUploadingSound
+                        ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 12),
+                        Text('Uploading sound...'),
+                      ],
+                    )
+                        : Row(
+                      children: [
+                        Icon(
+                          _soundUrl != null
+                              ? Icons.music_note
+                              : Icons.upload_file,
+                          color: _soundUrl != null
+                              ? AppTheme.success
+                              : AppTheme.textSecondary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _soundUrl != null
+                                    ? 'Sound uploaded ✓'
+                                    : 'Upload pet sound',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: _soundUrl != null
+                                      ? AppTheme.success
+                                      : AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                _soundUrl != null
+                                    ? 'Tap to replace (MP3/WAV)'
+                                    : 'Tap to select MP3 or WAV file',
+                                style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _nameController,
                   decoration: const InputDecoration(
@@ -313,18 +391,18 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
                     if (pet == null) {
                       await PetService.createPet(
                         name: _nameController.text.trim(),
-                        price:
-                        int.tryParse(_priceController.text) ?? 100,
+                        price: int.tryParse(_priceController.text) ?? 100,
                         imageUrl: _imageUrl,
                         description: _descController.text.trim(),
+                        soundUrl: _soundUrl, // add this
                       );
                     } else {
                       await PetService.updatePet(pet.id, {
                         'name': _nameController.text.trim(),
-                        'price':
-                        int.tryParse(_priceController.text) ?? 100,
+                        'price': int.tryParse(_priceController.text) ?? 100,
                         'image_url': _imageUrl,
                         'description': _descController.text.trim(),
+                        'sound_url': _soundUrl, // add this
                       });
                     }
                     if (context.mounted) Navigator.pop(context);
@@ -366,6 +444,56 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
     if (confirmed == true) {
       await PetService.deletePet(pet.id);
       _load();
+    }
+  }
+
+  Future<void> _pickAndUploadSound(StateSetter setModalState) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['mp3', 'wav', 'ogg'],
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    setModalState(() => _isUploadingSound = true);
+    try {
+      final file = File(result.files.single.path!);
+      final bytes = await file.readAsBytes();
+      final ext = result.files.single.extension ?? 'mp3';
+      final fileName =
+          'pet_sound_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+      await Supabase.instance.client.storage
+          .from('pet-sounds')
+          .uploadBinary(fileName, bytes,
+          fileOptions: FileOptions(
+            upsert: true,
+            contentType: ext == 'mp3'
+                ? 'audio/mpeg'
+                : ext == 'wav'
+                ? 'audio/wav'
+                : 'audio/ogg',
+          ));
+
+      final url = Supabase.instance.client.storage
+          .from('pet-sounds')
+          .getPublicUrl(fileName);
+
+      setModalState(() {
+        _soundUrl = url;
+        _isUploadingSound = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sound uploaded!')));
+      }
+    } catch (e) {
+      setModalState(() => _isUploadingSound = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Sound upload failed: $e')));
+      }
     }
   }
 

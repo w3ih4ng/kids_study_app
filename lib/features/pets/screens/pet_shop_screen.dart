@@ -288,6 +288,7 @@ class _PetShopScreenState extends State<PetShopScreen>
               children: [
                 AnimatedPetWidget(
                     imageUrl: pet.imageUrl,
+                    soundUrl: pet.soundUrl,
                     size: 80,
                     animate: isActive),
                 const SizedBox(width: 16),

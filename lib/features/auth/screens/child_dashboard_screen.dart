@@ -139,7 +139,8 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
 
         return AnimatedPetWidget(
           imageUrl: activePet.imageUrl,
-          size: 100, // bigger
+          soundUrl: activePet.soundUrl,
+          size: 100,
           animate: true,
           interactive: true,
         );
@@ -163,8 +164,6 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
             onTap: (index) => setState(() => _currentIndex = index),
           ),
         ),
-        // Floating pet overlay — positioned relative to full screen
-        if (_currentIndex != 4)
           Positioned(
             bottom: 80, // above nav bar
             right: 16,

@@ -5,6 +5,7 @@ import 'package:gif/gif.dart';
 
 class AnimatedPetWidget extends StatefulWidget {
   final String? imageUrl;
+  final String? soundUrl; // add this
   final double size;
   final bool animate;
   final bool interactive;
@@ -12,6 +13,7 @@ class AnimatedPetWidget extends StatefulWidget {
   const AnimatedPetWidget({
     super.key,
     this.imageUrl,
+    this.soundUrl, // add this
     this.size = 120,
     this.animate = true,
     this.interactive = false,
@@ -96,8 +98,13 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
       _messages[DateTime.now().millisecond % _messages.length];
     });
 
+    // Play sound from URL or fallback to asset
     try {
-      await _audioPlayer.play(AssetSource('sounds/pet_sound.wav'));
+      if (widget.soundUrl != null && widget.soundUrl!.isNotEmpty) {
+        await _audioPlayer.play(UrlSource(widget.soundUrl!));
+      } else {
+        await _audioPlayer.play(AssetSource('sounds/pet_sound.wav'));
+      }
     } catch (_) {}
 
     await _bounceController.forward();
