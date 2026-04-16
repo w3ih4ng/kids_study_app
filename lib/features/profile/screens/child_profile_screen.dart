@@ -232,6 +232,41 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+// Child code
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+              ),
+              child: Column(
+                children: [
+                  const Text('My Friend Code',
+                      style: TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Text(
+                    child?.childCode ?? '--------',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 4,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Share this code with friends to connect!',
+                    style: TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 11),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
             const Spacer(),
             // Parent Dashboard button at the bottom
             SizedBox(

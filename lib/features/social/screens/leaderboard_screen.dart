@@ -18,7 +18,10 @@ class LeaderboardScreen extends StatefulWidget {
 class _LeaderboardScreenState extends State<LeaderboardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<LeaderboardModel> _leaderboard = [];
+  List<LeaderboardModel> _allPlayers = [];
+  List<LeaderboardModel> _friendsOnly = [];
+  List<LeaderboardModel> _mathPlayers = [];
+  List<LeaderboardModel> _englishPlayers = [];
   LeaderboardModel? _myStats;
   int _myRank = 0;
   bool _isLoading = true;
@@ -26,22 +29,35 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _load();
   }
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
     final child = context.read<ChildProvider>().activeChild!;
-    final board = await LeaderboardService.getLeaderboard();
-    final stats = await LeaderboardService.getChildStats(child.id);
-    final rank = await LeaderboardService.getChildRank(child.id);
+
+    final all = await LeaderboardService.getLeaderboard();
+    final friends = await LeaderboardService
+        .getFriendsLeaderboard(childId: child.id);
+    final stats =
+    await LeaderboardService.getChildStats(child.id);
+    final rank =
+    await LeaderboardService.getChildRank(child.id);
+    final math = await LeaderboardService.getLeaderboardBySubject(
+        subject: 'Math');
+    final english = await LeaderboardService.getLeaderboardBySubject(
+        subject: 'English');
+
     if (mounted) {
       setState(() {
-        _leaderboard = board;
+        _allPlayers = all;
+        _friendsOnly = friends;
         _myStats = stats;
         _myRank = rank;
         _isLoading = false;
+        _mathPlayers = math;
+        _englishPlayers = english;
       });
     }
   }
@@ -57,7 +73,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
           tabs: const [
-            Tab(text: 'Rankings'),
+            Tab(text: 'All'),
+            Tab(text: 'Friends'),
+            Tab(text: 'Math'),
+            Tab(text: 'English'),
             Tab(text: 'My Stats'),
           ],
         ),
@@ -67,38 +86,61 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           : TabBarView(
         controller: _tabController,
         children: [
-          _buildRankings(),
+          _buildRankings(_allPlayers, showAll: true),
+          _buildRankings(_friendsOnly, showAll: false),
+          _buildRankings(_mathPlayers, showAll: true, label: 'Math'),
+          _buildRankings(_englishPlayers, showAll: true, label: 'English'),
           _buildMyStats(),
         ],
       ),
     );
   }
 
-  Widget _buildRankings() {
-    if (_leaderboard.isEmpty) {
-      return const Center(
-        child: Text('No rankings yet. Complete a quiz to appear!',
-            style: TextStyle(color: AppTheme.textSecondary),
-            textAlign: TextAlign.center),
+  Widget _buildRankings(
+      List<LeaderboardModel> list, {
+        required bool showAll,
+        String label = 'players',
+      }) {
+    final child = context.read<ChildProvider>().activeChild;
+
+    if (list.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.leaderboard_outlined,
+                  size: 72, color: AppTheme.textSecondary),
+              const SizedBox(height: 16),
+              Text(
+                showAll
+                    ? 'No $label rankings yet.\nComplete a quiz to appear!'
+                    : 'None of your friends are on the leaderboard yet.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
-    final child = context.read<ChildProvider>().activeChild;
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _leaderboard.length,
+      itemCount: list.length,
       itemBuilder: (_, i) {
-        final entry = _leaderboard[i];
+        final entry = list[i];
         final isMe = entry.childId == child?.id;
         final rank = i + 1;
 
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
             color: isMe
-                ? AppTheme.primary.withOpacity(0.1)
+                ? AppTheme.primary.withOpacity(0.08)
                 : AppTheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
@@ -109,26 +151,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             ),
           ),
           child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16, vertical: 4),
             leading: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Rank badge
-                Container(
+                SizedBox(
                   width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: _rankColor(rank).withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
                   child: Center(
                     child: rank <= 3
                         ? Text(_rankEmoji(rank),
                         style:
-                        const TextStyle(fontSize: 18))
+                        const TextStyle(fontSize: 22))
                         : Text('#$rank',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 13,
                             color: _rankColor(rank))),
                   ),
                 ),
@@ -137,19 +176,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   nickname:
                   entry.childInfo?.nickname ?? '?',
                   avatarUrl: entry.childInfo?.avatarUrl,
-                  radius: 18,
+                  radius: 20,
                 ),
               ],
             ),
             title: Row(
               children: [
-                Text(
-                  entry.childInfo?.nickname ?? 'Unknown',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isMe
-                        ? AppTheme.primary
-                        : AppTheme.textPrimary,
+                Flexible(
+                  child: Text(
+                    entry.childInfo?.nickname ?? 'Unknown',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isMe
+                          ? AppTheme.primary
+                          : AppTheme.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (isMe) ...[
@@ -173,19 +215,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             subtitle: Text(
               '${entry.totalCorrect} correct · ${entry.totalCoins} coins',
               style: const TextStyle(
-                  fontSize: 12, color: AppTheme.textSecondary),
+                  fontSize: 11,
+                  color: AppTheme.textSecondary),
             ),
             trailing: Container(
               padding: const EdgeInsets.symmetric(
                   horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _rankColor(rank).withOpacity(0.15),
+                color: _rankColor(rank).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 '${entry.score} pts',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 13,
                   color: _rankColor(rank),
                 ),
               ),
@@ -217,13 +261,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         children: [
           // Rank card
           Container(
-            padding: const EdgeInsets.all(20),
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppTheme.primary,
-                  AppTheme.secondary,
-                ],
+              gradient: const LinearGradient(
+                colors: [AppTheme.primary, AppTheme.secondary],
               ),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -233,22 +275,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   _myRank <= 3
                       ? _rankEmoji(_myRank)
                       : '#$_myRank',
-                  style: const TextStyle(fontSize: 48),
+                  style: const TextStyle(fontSize: 52),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
                     children: [
                       Text(
                         _myRank == 1
                             ? 'You\'re #1! 🎉'
                             : 'Rank #$_myRank',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold),
                       ),
                       Text(
                         '${_myStats!.score} total points',
@@ -264,7 +306,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           const SizedBox(height: 20),
 
-          // Stats cards
+          // Stats row
           Row(
             children: [
               Expanded(
@@ -288,7 +330,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           const SizedBox(height: 24),
 
-          // Bar chart — score breakdown
+          // Score breakdown chart
           const Text('Score Breakdown',
               style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.bold)),
@@ -299,20 +341,25 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 color: AppTheme.textSecondary, fontSize: 12),
           ),
           const SizedBox(height: 16),
-          SizedBox(
+          Container(
             height: 200,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.border),
+            ),
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
                 maxY: (_myStats!.score + 50).toDouble(),
                 barTouchData: BarTouchData(enabled: false),
                 titlesData: FlTitlesData(
-                  show: true,
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        const titles = [
+                      getTitlesWidget: (value, _) {
+                        const labels = [
                           'Coins',
                           'Answers\n×10',
                           'Total'
@@ -320,7 +367,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
-                            titles[value.toInt()],
+                            labels[value.toInt()],
                             style: const TextStyle(
                                 fontSize: 11,
                                 color: AppTheme.textSecondary),
@@ -331,24 +378,27 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     ),
                   ),
                   leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                      sideTitles:
+                      SideTitles(showTitles: false)),
                   topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                      sideTitles:
+                      SideTitles(showTitles: false)),
                   rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                      sideTitles:
+                      SideTitles(showTitles: false)),
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 barGroups: [
-                  _barGroup(0, _myStats!.totalCoins.toDouble(),
+                  _barGroup(0,
+                      _myStats!.totalCoins.toDouble(),
                       AppTheme.accent),
                   _barGroup(
                       1,
-                      (_myStats!.totalCorrect * 10).toDouble(),
+                      (_myStats!.totalCorrect * 10)
+                          .toDouble(),
                       AppTheme.success),
-                  _barGroup(
-                      2,
-                      _myStats!.score.toDouble(),
+                  _barGroup(2, _myStats!.score.toDouble(),
                       AppTheme.primary),
                 ],
               ),
@@ -356,14 +406,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           const SizedBox(height: 24),
 
-          // Top 3 bar chart comparison
-          if (_leaderboard.length >= 2) ...[
-            const Text('Top Players Comparison',
+          // Top players comparison
+          if (_allPlayers.length >= 2) ...[
+            const Text('Top 5 Comparison',
                 style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold)),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            SizedBox(
+            Container(
               height: 200,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.border),
+              ),
               child: _buildComparisonChart(),
             ),
           ],
@@ -373,8 +430,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildComparisonChart() {
-    final top = _leaderboard.take(5).toList();
-    final child = context.read<ChildProvider>().activeChild;
+    final child =
+        context.read<ChildProvider>().activeChild;
+    final top = _allPlayers.take(5).toList();
 
     return BarChart(
       BarChartData(
@@ -382,10 +440,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         maxY: (top.first.score + 50).toDouble(),
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
-            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final entry = top[groupIndex];
+            getTooltipItem: (group, _, rod, __) {
+              final entry = top[group.x];
               return BarTooltipItem(
-                '${entry.childInfo?.nickname}\n${entry.score} pts',
+                '${entry.childInfo?.nickname ?? '?'}\n${entry.score} pts',
                 const TextStyle(
                     color: Colors.white, fontSize: 11),
               );
@@ -393,18 +451,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
         ),
         titlesData: FlTitlesData(
-          show: true,
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index >= top.length) return const SizedBox();
-                final nickname =
-                    top[index].childInfo?.nickname ?? '?';
-                final short = nickname.length > 6
-                    ? '${nickname.substring(0, 6)}..'
-                    : nickname;
+              getTitlesWidget: (value, _) {
+                final i = value.toInt();
+                if (i >= top.length) return const SizedBox();
+                final name =
+                    top[i].childInfo?.nickname ?? '?';
+                final short = name.length > 6
+                    ? '${name.substring(0, 6)}..'
+                    : name;
                 return Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(short,
@@ -452,7 +509,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _statCard(
-      String value, String label, IconData icon, Color color) {
+      String value,
+      String label,
+      IconData icon,
+      Color color,
+      ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -466,14 +527,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           const SizedBox(height: 8),
           Text(value,
               style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: color)),
           const SizedBox(height: 4),
           Text(label,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 12)),
+                  color: AppTheme.textSecondary,
+                  fontSize: 12)),
         ],
       ),
     );

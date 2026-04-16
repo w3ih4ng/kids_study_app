@@ -36,6 +36,23 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     controller.stop();
 
     try {
+      // Verify scanned child exists
+      final check = await supabase
+          .from('children_public')
+          .select('id, nickname')
+          .eq('id', scannedId)
+          .limit(1);
+
+      if ((check as List).isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid QR code!')),
+          );
+          setState(() => _isProcessing = false);
+          controller.start();
+        }
+        return;
+      }
       // Check if already friends
       final already = await FriendService.isFriend(
         childId: child.id,
@@ -58,11 +75,18 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         currentChildId: child.id,
       );
 
-      // Add friend
-      await FriendService.addFriend(
-        childId: child.id,
-        friendId: scannedId,
+      // After verifying child exists, send request instead of direct add
+      await FriendService.sendRequest(
+        senderId: child.id,
+        receiverId: scannedId,
       );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Friend request sent! 🎉')),
+        );
+        Navigator.pop(context);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
