@@ -18,18 +18,29 @@ class LeaderboardScreen extends StatefulWidget {
 class _LeaderboardScreenState extends State<LeaderboardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
+  // All players data per subject
   List<LeaderboardModel> _allPlayers = [];
-  List<LeaderboardModel> _friendsOnly = [];
-  List<LeaderboardModel> _mathPlayers = [];
-  List<LeaderboardModel> _englishPlayers = [];
+  List<LeaderboardModel> _allMath = [];
+  List<LeaderboardModel> _allEnglish = [];
+
+  // Friends data per subject
+  List<LeaderboardModel> _friendsAll = [];
+  List<LeaderboardModel> _friendsMath = [];
+  List<LeaderboardModel> _friendsEnglish = [];
+
   LeaderboardModel? _myStats;
   int _myRank = 0;
   bool _isLoading = true;
 
+  // Subject filter state for each tab
+  String _allSubjectFilter = 'All';
+  String _friendsSubjectFilter = 'All';
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _load();
   }
 
@@ -40,25 +51,50 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final all = await LeaderboardService.getLeaderboard();
     final friends = await LeaderboardService
         .getFriendsLeaderboard(childId: child.id);
+    final math = await LeaderboardService
+        .getLeaderboardBySubject(subject: 'Math');
+    final english = await LeaderboardService
+        .getLeaderboardBySubject(subject: 'English');
+    final friendsMath = await LeaderboardService
+        .getFriendsLeaderboardBySubject(
+        childId: child.id, subject: 'Math');
+    final friendsEnglish = await LeaderboardService
+        .getFriendsLeaderboardBySubject(
+        childId: child.id, subject: 'English');
     final stats =
     await LeaderboardService.getChildStats(child.id);
     final rank =
     await LeaderboardService.getChildRank(child.id);
-    final math = await LeaderboardService.getLeaderboardBySubject(
-        subject: 'Math');
-    final english = await LeaderboardService.getLeaderboardBySubject(
-        subject: 'English');
 
     if (mounted) {
       setState(() {
         _allPlayers = all;
-        _friendsOnly = friends;
+        _allMath = math;
+        _allEnglish = english;
+        _friendsAll = friends;
+        _friendsMath = friendsMath;
+        _friendsEnglish = friendsEnglish;
         _myStats = stats;
         _myRank = rank;
         _isLoading = false;
-        _mathPlayers = math;
-        _englishPlayers = english;
       });
+    }
+  }
+
+  // Get current list based on tab + filter
+  List<LeaderboardModel> get _currentAllList {
+    switch (_allSubjectFilter) {
+      case 'Math': return _allMath;
+      case 'English': return _allEnglish;
+      default: return _allPlayers;
+    }
+  }
+
+  List<LeaderboardModel> get _currentFriendsList {
+    switch (_friendsSubjectFilter) {
+      case 'Math': return _friendsMath;
+      case 'English': return _friendsEnglish;
+      default: return _friendsAll;
     }
   }
 
@@ -73,10 +109,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
           tabs: const [
-            Tab(text: 'All'),
+            Tab(text: 'All Players'),
             Tab(text: 'Friends'),
-            Tab(text: 'Math'),
-            Tab(text: 'English'),
             Tab(text: 'My Stats'),
           ],
         ),
@@ -86,46 +120,119 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           : TabBarView(
         controller: _tabController,
         children: [
-          _buildRankings(_allPlayers, showAll: true),
-          _buildRankings(_friendsOnly, showAll: false),
-          _buildRankings(_mathPlayers, showAll: true, label: 'Math'),
-          _buildRankings(_englishPlayers, showAll: true, label: 'English'),
+          _buildFilteredTab(
+            list: _currentAllList,
+            selectedFilter: _allSubjectFilter,
+            onFilterChanged: (f) =>
+                setState(() => _allSubjectFilter = f),
+            emptyMessage:
+            'No rankings yet.\nComplete a quiz to appear!',
+          ),
+          _buildFilteredTab(
+            list: _currentFriendsList,
+            selectedFilter: _friendsSubjectFilter,
+            onFilterChanged: (f) =>
+                setState(() => _friendsSubjectFilter = f),
+            emptyMessage:
+            'None of your friends are on the leaderboard yet.',
+          ),
           _buildMyStats(),
         ],
       ),
     );
   }
 
-  Widget _buildRankings(
-      List<LeaderboardModel> list, {
-        required bool showAll,
-        String label = 'players',
-      }) {
-    final child = context.read<ChildProvider>().activeChild;
+  // ── Filtered tab with subject chips ──────────────────
+  Widget _buildFilteredTab({
+    required List<LeaderboardModel> list,
+    required String selectedFilter,
+    required Function(String) onFilterChanged,
+    required String emptyMessage,
+  }) {
+    return Column(
+      children: [
+        // Subject filter chips
+        Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: 16, vertical: 10),
+          color: AppTheme.primary.withOpacity(0.04),
+          child: Row(
+            children: ['All', 'Math', 'English'].map((subject) {
+              final isSelected = selectedFilter == subject;
+              final color = subject == 'Math'
+                  ? AppTheme.lessonsColor
+                  : subject == 'English'
+                  ? AppTheme.quizzesColor
+                  : AppTheme.primary;
 
-    if (list.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.leaderboard_outlined,
-                  size: 72, color: AppTheme.textSecondary),
-              const SizedBox(height: 16),
-              Text(
-                showAll
-                    ? 'No $label rankings yet.\nComplete a quiz to appear!'
-                    : 'None of your friends are on the leaderboard yet.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: AppTheme.textSecondary),
-              ),
-            ],
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: GestureDetector(
+                  onTap: () => onFilterChanged(subject),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? color
+                          : color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? color
+                            : color.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Text(
+                      subject,
+                      style: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ),
-      );
-    }
+        // Rankings list
+        Expanded(
+          child: list.isEmpty
+              ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment:
+                MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                      Icons.leaderboard_outlined,
+                      size: 72,
+                      color: AppTheme.textSecondary),
+                  const SizedBox(height: 16),
+                  Text(
+                    emptyMessage,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          )
+              : _buildRankingsList(list),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRankingsList(List<LeaderboardModel> list) {
+    final child = context.read<ChildProvider>().activeChild;
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -144,9 +251,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 : AppTheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isMe
-                  ? AppTheme.primary
-                  : AppTheme.border,
+              color: isMe ? AppTheme.primary : AppTheme.border,
               width: isMe ? 2 : 1,
             ),
           ),
@@ -156,7 +261,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             leading: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Rank badge
                 SizedBox(
                   width: 36,
                   child: Center(
@@ -200,7 +304,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     padding: const EdgeInsets.symmetric(
                         horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.1),
+                      color:
+                      AppTheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text('You',
@@ -306,7 +411,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           const SizedBox(height: 20),
 
-          // Stats row
           Row(
             children: [
               Expanded(
@@ -330,7 +434,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           const SizedBox(height: 24),
 
-          // Score breakdown chart
           const Text('Score Breakdown',
               style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.bold)),
@@ -353,7 +456,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
                 maxY: (_myStats!.score + 50).toDouble(),
-                barTouchData: BarTouchData(enabled: false),
+                barTouchData:
+                BarTouchData(enabled: false),
                 titlesData: FlTitlesData(
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -365,12 +469,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                           'Total'
                         ];
                         return Padding(
-                          padding: const EdgeInsets.only(top: 8),
+                          padding:
+                          const EdgeInsets.only(top: 8),
                           child: Text(
                             labels[value.toInt()],
                             style: const TextStyle(
                                 fontSize: 11,
-                                color: AppTheme.textSecondary),
+                                color:
+                                AppTheme.textSecondary),
                             textAlign: TextAlign.center,
                           ),
                         );
@@ -390,7 +496,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 barGroups: [
-                  _barGroup(0,
+                  _barGroup(
+                      0,
                       _myStats!.totalCoins.toDouble(),
                       AppTheme.accent),
                   _barGroup(
@@ -406,7 +513,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           const SizedBox(height: 24),
 
-          // Top players comparison
           if (_allPlayers.length >= 2) ...[
             const Text('Top 5 Comparison',
                 style: TextStyle(
@@ -493,7 +599,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  BarChartGroupData _barGroup(int x, double y, Color color) {
+  BarChartGroupData _barGroup(
+      int x, double y, Color color) {
     return BarChartGroupData(
       x: x,
       barRods: [
@@ -509,11 +616,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _statCard(
-      String value,
-      String label,
-      IconData icon,
-      Color color,
-      ) {
+      String value, String label, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

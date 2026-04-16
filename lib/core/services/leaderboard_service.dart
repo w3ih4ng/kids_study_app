@@ -150,4 +150,26 @@ class LeaderboardService {
     result.sort((a, b) => b.score.compareTo(a.score));
     return result;
   }
+
+  static Future<List<LeaderboardModel>> getFriendsLeaderboardBySubject({
+    required String childId,
+    required String subject,
+  }) async {
+    // Get friend ids
+    final friendsResponse = await supabase
+        .from('friends')
+        .select('friend_id')
+        .eq('child_id', childId);
+
+    final friendIds = (friendsResponse as List)
+        .map((e) => e['friend_id'] as String)
+        .toList();
+    friendIds.add(childId);
+
+    // Get subject leaderboard then filter to friends
+    final all = await getLeaderboardBySubject(subject: subject);
+    return all
+        .where((e) => friendIds.contains(e.childId))
+        .toList();
+  }
 }
