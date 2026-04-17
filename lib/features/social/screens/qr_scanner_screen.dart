@@ -69,12 +69,6 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         return;
       }
 
-      // Check if child exists
-      final results = await FriendService.searchChildren(
-        query: '',
-        currentChildId: child.id,
-      );
-
       // After verifying child exists, send request instead of direct add
       await FriendService.sendRequest(
         senderId: child.id,
@@ -88,12 +82,6 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         Navigator.pop(context);
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Friend added! 🎉')),
-        );
-        Navigator.pop(context);
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

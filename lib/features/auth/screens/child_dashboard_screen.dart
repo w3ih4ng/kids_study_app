@@ -14,10 +14,8 @@ import '../../pets/screens/pet_shop_screen.dart';
 import '../../profile/screens/child_profile_screen.dart';
 import 'pin_screen.dart';
 import 'parent_dashboard_screen.dart';
-import '../../pets/screens/pet_shop_screen.dart';
 import '../../../core/services/pet_service.dart';
 import '../../../models/pet_model.dart';
-import '../../home/screens/home_screen.dart';
 import '../../social/screens/friends_screen.dart';
 import '../../social/screens/leaderboard_screen.dart';
 

@@ -107,6 +107,7 @@ class _PetShopScreenState extends State<PetShopScreen>
       nickname: child.nickname,
       avatarUrl: child.avatarUrl,
       coins: child.coins - pet.price,
+      activePetId: child.activePetId,
     );
     if (mounted) {
       context.read<ChildProvider>().setActiveChild(updatedChild);
