@@ -14,10 +14,10 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   List<FriendModel> _friends = [];
   List<LeaderboardModel> _topPlayers = [];
   bool _isLoading = true;
@@ -28,7 +28,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _load();
   }
 
+  void reload() => _load();
+
   Future<void> _load() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
     final child = context.read<ChildProvider>().activeChild!;
     final friends = await FriendService.getFriends(child.id);
     final top = await LeaderboardService.getLeaderboard(limit: 3);

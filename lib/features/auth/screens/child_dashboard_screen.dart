@@ -28,13 +28,14 @@ class ChildDashboardScreen extends StatefulWidget {
 
 class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
   int _currentIndex = 0;
+  final GlobalKey<HomeScreenState> _homeKey = GlobalKey<HomeScreenState>();
 
-  final List<Widget> _tabs = const [
-    HomeScreen(),
-    LessonListScreen(),
-    QuizListScreen(),
-    BookListScreen(),
-    PetShopScreen(),
+  List<Widget> get _tabs => [
+    HomeScreen(key: _homeKey),
+    const LessonListScreen(),
+    const QuizListScreen(),
+    const BookListScreen(),
+    const PetShopScreen(),
   ];
 
   final List<String> _tabTitles = const [
@@ -159,7 +160,13 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
           body: _tabs[_currentIndex],
           bottomNavigationBar: ChildBottomNavBar(
             currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
+            onTap: (index) {
+              setState(() => _currentIndex = index);
+              // Reload home when navigating back to it
+              if (index == 0) {
+                _homeKey.currentState?.reload();
+              }
+            },
           ),
         ),
           Positioned(
