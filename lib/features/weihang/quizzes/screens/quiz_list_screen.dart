@@ -45,12 +45,10 @@ class _QuizListScreenState extends State<QuizListScreen>
     final english = await QuizService.getQuizzes(subject: 'English');
     final allLessons = await LessonService.getLessons();
 
-    // Build lesson map for thumbnail lookup
     final Map<String, LessonModel> lessonMap = {
       for (final l in allLessons) l.id: l
     };
 
-    // Check attempt status
     final allQuizzes = [...math, ...english];
     final Map<String, Map<String, dynamic>?> attempts = {};
     for (final quiz in allQuizzes) {
@@ -76,7 +74,6 @@ class _QuizListScreenState extends State<QuizListScreen>
     return quizzes.where((q) => q.ageLevel == _selectedAge).toList();
   }
 
-  // Get thumbnail for quiz — own thumbnail, linked lesson thumbnail, or null
   String? _getQuizThumbnail(QuizModel quiz) {
     if (quiz.thumbnailUrl != null) return quiz.thumbnailUrl;
     if (quiz.lessonId != null) {
@@ -100,11 +97,10 @@ class _QuizListScreenState extends State<QuizListScreen>
             tabs: const [Tab(text: 'Math'), Tab(text: 'English')],
           ),
         ),
-        // Age filter chips
         Container(
           color: AppTheme.quizzesColor.withOpacity(0.06),
-          padding: const EdgeInsets.symmetric(
-              horizontal: 12, vertical: 8),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -113,8 +109,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedAge = age),
+                    onTap: () => setState(() => _selectedAge = age),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
@@ -177,6 +172,7 @@ class _QuizListScreenState extends State<QuizListScreen>
   }
 
   Widget _quizCard(QuizModel quiz) {
+    final cs = Theme.of(context).colorScheme;
     final attempted = _attemptMap[quiz.id] != null;
     final firstAttempt = _attemptMap[quiz.id];
     final hasQuestions = quiz.questions.isNotEmpty;
@@ -187,12 +183,12 @@ class _QuizListScreenState extends State<QuizListScreen>
       duration: const Duration(milliseconds: 250),
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: attempted
               ? AppTheme.success.withOpacity(0.5)
-              : AppTheme.border,
+              : cs.outline,
           width: attempted ? 1.5 : 1,
         ),
         boxShadow: [
@@ -205,7 +201,6 @@ class _QuizListScreenState extends State<QuizListScreen>
       ),
       child: Column(
         children: [
-          // Main row — always visible
           InkWell(
             onTap: () => setState(() =>
             _expandedQuizId = isExpanded ? null : quiz.id),
@@ -214,7 +209,6 @@ class _QuizListScreenState extends State<QuizListScreen>
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  // Thumbnail
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: SizedBox(
@@ -231,7 +225,6 @@ class _QuizListScreenState extends State<QuizListScreen>
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Title + badges
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,10 +241,8 @@ class _QuizListScreenState extends State<QuizListScreen>
                         Wrap(
                           spacing: 6,
                           children: [
-                            _badge(quiz.ageLevel,
-                                AppTheme.secondary),
-                            _badge(quiz.subject,
-                                AppTheme.quizzesColor),
+                            _badge(quiz.ageLevel, AppTheme.secondary),
+                            _badge(quiz.subject, AppTheme.quizzesColor),
                             if (attempted)
                               _badge('Done ✓', AppTheme.success),
                           ],
@@ -269,18 +260,16 @@ class _QuizListScreenState extends State<QuizListScreen>
                       ],
                     ),
                   ),
-                  // Expand chevron
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 250),
-                    child: const Icon(Icons.keyboard_arrow_down,
-                        color: AppTheme.textSecondary),
+                    child: Icon(Icons.keyboard_arrow_down,
+                        color: cs.onSurface.withOpacity(0.6)),
                   ),
                 ],
               ),
             ),
           ),
-          // Expanded details
           if (isExpanded)
             Container(
               decoration: BoxDecoration(
@@ -288,34 +277,28 @@ class _QuizListScreenState extends State<QuizListScreen>
                 borderRadius: const BorderRadius.vertical(
                     bottom: Radius.circular(16)),
                 border: Border(
-                  top: BorderSide(
-                      color: AppTheme.border, width: 1),
+                  top: BorderSide(color: cs.outline),
                 ),
               ),
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Stats row
                   Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _statItem(Icons.quiz_outlined,
-                          '${quiz.questions.length}', 'Questions'),
+                          '${quiz.questions.length}', 'Questions', cs),
                       Container(
-                          width: 1, height: 32,
-                          color: AppTheme.border),
+                          width: 1, height: 32, color: cs.outline),
                       _statItem(Icons.monetization_on,
-                          '${quiz.coinValue}', 'Coins'),
+                          '${quiz.coinValue}', 'Coins', cs),
                       Container(
-                          width: 1, height: 32,
-                          color: AppTheme.border),
+                          width: 1, height: 32, color: cs.outline),
                       _statItem(Icons.child_care,
-                          quiz.ageLevel, 'Age'),
+                          quiz.ageLevel, 'Age', cs),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Action button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -330,9 +313,8 @@ class _QuizListScreenState extends State<QuizListScreen>
                         ),
                       ).then((_) => _load())
                           : null,
-                      icon: Icon(attempted
-                          ? Icons.replay
-                          : Icons.play_arrow),
+                      icon: Icon(
+                          attempted ? Icons.replay : Icons.play_arrow),
                       label: Text(
                         !hasQuestions
                             ? 'No questions yet'
@@ -343,25 +325,24 @@ class _QuizListScreenState extends State<QuizListScreen>
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: attempted
-                            ? AppTheme.textSecondary
+                            ? cs.onSurface.withOpacity(0.4)
                             : AppTheme.quizzesColor,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 14),
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ),
                   if (attempted)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         'Practice mode — no coins for retakes',
                         style: TextStyle(
                             fontSize: 11,
-                            color: AppTheme.textSecondary),
+                            color: cs.onSurface.withOpacity(0.6)),
                       ),
                     ),
                 ],
@@ -381,7 +362,8 @@ class _QuizListScreenState extends State<QuizListScreen>
     );
   }
 
-  Widget _statItem(IconData icon, String value, String label) {
+  Widget _statItem(
+      IconData icon, String value, String label, ColorScheme cs) {
     return Column(
       children: [
         Icon(icon, color: AppTheme.quizzesColor, size: 20),
@@ -390,16 +372,16 @@ class _QuizListScreenState extends State<QuizListScreen>
             style: const TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 14)),
         Text(label,
-            style: const TextStyle(
-                color: AppTheme.textSecondary, fontSize: 11)),
+            style: TextStyle(
+                color: cs.onSurface.withOpacity(0.6), fontSize: 11)),
       ],
     );
   }
 
   Widget _badge(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 8, vertical: 2),
+      padding:
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(20),

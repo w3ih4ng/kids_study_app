@@ -52,7 +52,6 @@ class _LessonListScreenState extends State<LessonListScreen>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Subject tabs
         Container(
           color: AppTheme.lessonsColor,
           child: TabBar(
@@ -63,11 +62,9 @@ class _LessonListScreenState extends State<LessonListScreen>
             tabs: const [Tab(text: 'Math'), Tab(text: 'English')],
           ),
         ),
-        // Age filter chips
         Container(
           color: AppTheme.lessonsColor.withOpacity(0.06),
-          padding: const EdgeInsets.symmetric(
-              horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -145,6 +142,7 @@ class _LessonListScreenState extends State<LessonListScreen>
   }
 
   Widget _lessonCard(LessonModel lesson) {
+    final cs = Theme.of(context).colorScheme;
     final color = lesson.subject == 'Math'
         ? AppTheme.lessonsColor
         : AppTheme.quizzesColor;
@@ -157,7 +155,7 @@ class _LessonListScreenState extends State<LessonListScreen>
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -170,7 +168,6 @@ class _LessonListScreenState extends State<LessonListScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail
             Expanded(
               flex: 3,
               child: ClipRRect(
@@ -187,7 +184,6 @@ class _LessonListScreenState extends State<LessonListScreen>
                     : _placeholderThumb(color),
               ),
             ),
-            // Info
             Expanded(
               flex: 2,
               child: Padding(
@@ -200,8 +196,7 @@ class _LessonListScreenState extends State<LessonListScreen>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13),
+                          fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     const Spacer(),
                     Wrap(
@@ -242,18 +237,16 @@ class _LessonListScreenState extends State<LessonListScreen>
       ),
       child: Text(label,
           style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: FontWeight.bold)),
+              fontSize: 10, color: color, fontWeight: FontWeight.bold)),
     );
   }
 
   Color _difficultyColor(String d) {
     switch (d) {
-      case 'Easy': return AppTheme.success;
+      case 'Easy':   return AppTheme.success;
       case 'Medium': return AppTheme.accent;
-      case 'Hard': return AppTheme.danger;
-      default: return AppTheme.textSecondary;
+      case 'Hard':   return AppTheme.danger;
+      default:       return AppTheme.textSecondary;
     }
   }
 }

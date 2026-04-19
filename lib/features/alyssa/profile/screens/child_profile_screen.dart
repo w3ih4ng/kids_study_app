@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/child_avatar.dart';
 import '../../auth/screens/pin_screen.dart';
 import '../../auth/screens/parent_dashboard_screen.dart';
+import '../../../../core/providers/theme_provider.dart';
 
 class ChildProfileScreen extends StatefulWidget {
   const ChildProfileScreen({super.key});
@@ -297,6 +298,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                 ],
               ),
             ),
+
             const Spacer(),
             SizedBox(
               width: double.infinity,

@@ -246,6 +246,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildRankingsList(List<LeaderboardModel> list) {
     final child = context.read<ChildProvider>().activeChild;
+    final cs = Theme.of(context).colorScheme;          // add this
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -261,14 +262,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           decoration: BoxDecoration(
             color: isMe
                 ? AppTheme.primary.withOpacity(0.08)
-                : AppTheme.surface,
+                : cs.surface,                           // changed
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isMe ? AppTheme.primary : AppTheme.border,
+              color: isMe ? AppTheme.primary : cs.outline, // changed
               width: isMe ? 2 : 1,
             ),
           ),
-          // ── Tap to view limited profile (non-self entries) ──
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
             onTap: isMe ? null : () => _showLimitedProfile(entry),
@@ -308,7 +308,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         fontWeight: FontWeight.bold,
                         color: isMe
                             ? AppTheme.primary
-                            : AppTheme.textPrimary,
+                            : cs.onSurface,           // changed
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -333,8 +333,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               ),
               subtitle: Text(
                 '${entry.totalCorrect} correct · ${entry.totalCoins} coins',
-                style: const TextStyle(
-                    fontSize: 11, color: AppTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: 11,
+                    color: cs.onSurface.withOpacity(0.6)),  // changed
               ),
               trailing: Container(
                 padding: const EdgeInsets.symmetric(

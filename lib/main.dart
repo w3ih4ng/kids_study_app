@@ -12,6 +12,7 @@ import 'features/alyssa/auth/screens/child_dashboard_screen.dart';
 import 'features/cheesean/admin/admin_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/services/notification_service.dart';
+import 'core/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,15 +37,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ChildProvider(),
-      child: MaterialApp(
+    return // Remove Consumer<ThemeProvider> wrapper, just use:
+      MaterialApp(
         title: 'Kids Study App',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.theme,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,   // follows phone setting automatically
         home: const AppStartup(),
-      ),
-    );
+      );
   }
 }
 

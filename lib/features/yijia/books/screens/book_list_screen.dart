@@ -58,6 +58,8 @@ class _BookListScreenState extends State<BookListScreen> {
   }
 
   Widget _comicCard(ComicModel comic) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
@@ -66,7 +68,7 @@ class _BookListScreenState extends State<BookListScreen> {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -79,7 +81,6 @@ class _BookListScreenState extends State<BookListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover image
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
@@ -92,8 +93,7 @@ class _BookListScreenState extends State<BookListScreen> {
                   errorBuilder: (_, __, ___) => Container(
                     color: AppTheme.booksColor.withOpacity(0.1),
                     child: const Icon(Icons.menu_book,
-                        size: 48,
-                        color: AppTheme.booksColor),
+                        size: 48, color: AppTheme.booksColor),
                   ),
                 )
                     : Container(
@@ -103,7 +103,6 @@ class _BookListScreenState extends State<BookListScreen> {
                 ),
               ),
             ),
-            // Info
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
@@ -113,14 +112,13 @@ class _BookListScreenState extends State<BookListScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13)),
+                          fontWeight: FontWeight.bold, fontSize: 13)),
                   if (comic.author != null)
                     Text(comic.author!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary,
+                        style: TextStyle(
+                            color: cs.onSurface.withOpacity(0.6),
                             fontSize: 11)),
                   const SizedBox(height: 4),
                   Row(
@@ -132,16 +130,18 @@ class _BookListScreenState extends State<BookListScreen> {
                         size: 12,
                         color: comic.pdfUrl != null
                             ? AppTheme.success
-                            : AppTheme.textSecondary,
+                            : cs.onSurface.withOpacity(0.6),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        comic.pdfUrl != null ? 'PDF Ready' : 'Coming soon',
+                        comic.pdfUrl != null
+                            ? 'PDF Ready'
+                            : 'Coming soon',
                         style: TextStyle(
                             fontSize: 11,
                             color: comic.pdfUrl != null
                                 ? AppTheme.success
-                                : AppTheme.textSecondary),
+                                : cs.onSurface.withOpacity(0.6)),
                       ),
                     ],
                   ),

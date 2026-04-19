@@ -7,6 +7,9 @@ class LoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final secondaryColor = Theme.of(context).textTheme.bodySmall?.color
+        ?? Colors.grey;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -14,8 +17,7 @@ class LoadingWidget extends StatelessWidget {
           const CircularProgressIndicator(color: AppTheme.primary),
           if (message != null) ...[
             const SizedBox(height: 16),
-            Text(message!,
-                style: const TextStyle(color: AppTheme.textSecondary)),
+            Text(message!, style: TextStyle(color: secondaryColor)),
           ]
         ],
       ),

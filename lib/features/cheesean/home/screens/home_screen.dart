@@ -48,6 +48,8 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
         : RefreshIndicator(
@@ -66,11 +68,9 @@ class HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold)),
                 TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const FriendsScreen()),
-                  ),
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(
+                          builder: (_) => const FriendsScreen())),
                   child: const Text('See all →'),
                 ),
               ],
@@ -80,15 +80,15 @@ class HomeScreenState extends State<HomeScreen> {
                 ? Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: cs.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: cs.outline),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   'No friends yet! Add some friends.',
-                  style:
-                  TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(
+                      color: cs.onSurface.withOpacity(0.6)),
                 ),
               ),
             )
@@ -100,8 +100,7 @@ class HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (_, i) {
                   final friend = _friends[i];
                   return Padding(
-                    padding:
-                    const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.only(right: 12),
                     child: GestureDetector(
                       onTap: () {
                         final info = friend.friendInfo;
@@ -162,11 +161,10 @@ class HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold)),
                 TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const LeaderboardScreen()),
-                  ),
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                          const LeaderboardScreen())),
                   child: const Text('Full board →'),
                 ),
               ],
@@ -176,24 +174,26 @@ class HomeScreenState extends State<HomeScreen> {
                 ? Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: cs.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: cs.outline),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   'No rankings yet. Complete a quiz!',
-                  style:
-                  TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(
+                      color: cs.onSurface.withOpacity(0.6)),
                 ),
               ),
             )
                 : Column(
-              children: _topPlayers.asMap().entries.map((e) {
+              children:
+              _topPlayers.asMap().entries.map((e) {
                 final rank = e.key + 1;
                 final entry = e.value;
-                final child =
-                    context.read<ChildProvider>().activeChild;
+                final child = context
+                    .read<ChildProvider>()
+                    .activeChild;
                 final isMe = entry.childId == child?.id;
 
                 return InkWell(
@@ -202,9 +202,12 @@ class HomeScreenState extends State<HomeScreen> {
                       ? null
                       : () => showModalBottomSheet(
                     context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(24)),
+                    shape:
+                    const RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.vertical(
+                          top:
+                          Radius.circular(24)),
                     ),
                     builder: (_) =>
                         LimitedProfileSheet(
@@ -217,14 +220,15 @@ class HomeScreenState extends State<HomeScreen> {
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: isMe
-                          ? AppTheme.primary.withOpacity(0.1)
-                          : AppTheme.surface,
+                          ? AppTheme.primary
+                          .withOpacity(0.1)
+                          : cs.surface,
                       borderRadius:
                       BorderRadius.circular(12),
                       border: Border.all(
                           color: isMe
                               ? AppTheme.primary
-                              : AppTheme.border),
+                              : cs.outline),
                     ),
                     child: Row(
                       children: [
@@ -234,13 +238,14 @@ class HomeScreenState extends State<HomeScreen> {
                               : rank == 2
                               ? '🥈'
                               : '🥉',
-                          style:
-                          const TextStyle(fontSize: 20),
+                          style: const TextStyle(
+                              fontSize: 20),
                         ),
                         const SizedBox(width: 12),
                         ChildAvatar(
-                          nickname:
-                          entry.childInfo?.nickname ?? '?',
+                          nickname: entry.childInfo
+                              ?.nickname ??
+                              '?',
                           avatarUrl:
                           entry.childInfo?.avatarUrl,
                           radius: 16,
@@ -254,9 +259,13 @@ class HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.bold,
                               color: isMe
                                   ? AppTheme.primary
-                                  : AppTheme.textPrimary,
+                                  : cs.onSurface,
                             ),
                           ),
+                        ),
+                        const Text(
+                          // score shown via entry below
+                          '',
                         ),
                         Text(
                           '${entry.score} pts',
