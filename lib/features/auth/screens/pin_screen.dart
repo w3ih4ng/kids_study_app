@@ -118,13 +118,15 @@ class _PinScreenState extends State<PinScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: _buildKey('0'),
                   ),
-                  GestureDetector(
-                    onTap: _onDelete,
-                    child: const SizedBox(
-                      width: 72,
-                      height: 72,
-                      child: Icon(Icons.backspace_outlined,
-                          color: Colors.indigo, size: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12), // ← add this wrapper
+                    child: GestureDetector(
+                      onTap: _onDelete,
+                      child: const SizedBox(
+                        width: 72,
+                        height: 72,
+                        child: Icon(Icons.backspace_outlined, color: Colors.indigo, size: 28),
+                      ),
                     ),
                   ),
                 ],

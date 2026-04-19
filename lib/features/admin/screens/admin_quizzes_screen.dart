@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/services/lesson_service.dart';
 import '../../../core/services/quiz_service.dart';
@@ -26,6 +28,10 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
   String _selectedSubject = 'Math';
   String? _selectedLessonId;
 
+  String _selectedAgeLevel = '6+';
+  String? _thumbnailUrl;
+  bool _isUploadingThumb = false;
+
   @override
   void initState() {
     super.initState();
@@ -51,11 +57,15 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
       _coinController.text = quiz.coinValue.toString();
       _selectedSubject = quiz.subject;
       _selectedLessonId = quiz.lessonId;
+      _selectedAgeLevel = quiz.ageLevel;
+      _thumbnailUrl = quiz.thumbnailUrl;
     } else {
       _titleController.clear();
       _coinController.text = '100';
       _selectedSubject = 'Math';
       _selectedLessonId = null;
+      _selectedAgeLevel = '6+';
+      _thumbnailUrl = null;
     }
 
     await showModalBottomSheet(
@@ -113,6 +123,56 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                       setModalState(() => _selectedLessonId = v),
                 ),
                 const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: _selectedAgeLevel,
+                  decoration: const InputDecoration(
+                      labelText: 'Age Level',
+                      border: OutlineInputBorder()),
+                  items: ['4+', '5+', '6+', '7+', '8+']
+                      .map((a) => DropdownMenuItem(value: a, child: Text('$a years old')))
+                      .toList(),
+                  onChanged: (v) => setModalState(() => _selectedAgeLevel = v!),
+                ),
+                const SizedBox(height: 12),
+// Thumbnail upload
+                const Text('Thumbnail (optional)',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: _isUploadingThumb
+                      ? null
+                      : () => _pickThumbnail(setModalState),
+                  child: Container(
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: _thumbnailUrl != null
+                          ? Colors.transparent
+                          : AppTheme.background,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: _isUploadingThumb
+                        ? const Center(child: CircularProgressIndicator())
+                        : _thumbnailUrl != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(_thumbnailUrl!,
+                          fit: BoxFit.cover, width: double.infinity),
+                    )
+                        : const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_photo_alternate,
+                            color: AppTheme.textSecondary, size: 32),
+                        SizedBox(height: 4),
+                        Text('Tap to add thumbnail',
+                            style: TextStyle(
+                                color: AppTheme.textSecondary, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _coinController,
                   keyboardType: TextInputType.number,
@@ -129,8 +189,9 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                         title: _titleController.text.trim(),
                         subject: _selectedSubject,
                         lessonId: _selectedLessonId,
-                        coinValue:
-                        int.tryParse(_coinController.text) ?? 100,
+                        coinValue: int.tryParse(_coinController.text) ?? 100,
+                        ageLevel: _selectedAgeLevel,
+                        thumbnailUrl: _thumbnailUrl,
                       );
                       if (context.mounted) Navigator.pop(context);
                       _load();
@@ -143,8 +204,9 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                         'title': _titleController.text.trim(),
                         'subject': _selectedSubject,
                         'lesson_id': _selectedLessonId,
-                        'coin_value':
-                        int.tryParse(_coinController.text) ?? 100,
+                        'coin_value': int.tryParse(_coinController.text) ?? 100,
+                        'age_level': _selectedAgeLevel,
+                        'thumbnail_url': _thumbnailUrl,
                       });
                     }
                     if (context.mounted) Navigator.pop(context);
@@ -185,6 +247,69 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
     if (confirmed == true) {
       await QuizService.deleteQuiz(quiz.id);
       _load();
+    }
+  }
+
+  Future<void> _pickThumbnail(StateSetter setModalState) async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            const Text('Quiz Thumbnail',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const CircleAvatar(
+                  backgroundColor: AppTheme.primary,
+                  child: Icon(Icons.camera_alt, color: Colors.white)),
+              title: const Text('Take a Photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const CircleAvatar(
+                  backgroundColor: AppTheme.secondary,
+                  child: Icon(Icons.photo_library, color: Colors.white)),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    final picked = await picker.pickImage(
+        source: source, maxWidth: 512, imageQuality: 80);
+    if (picked == null) return;
+
+    setModalState(() => _isUploadingThumb = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      final fileName = 'quiz_thumb_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      await Supabase.instance.client.storage
+          .from('quizzes')
+          .uploadBinary(fileName, bytes,
+          fileOptions: const FileOptions(upsert: true));
+      final url = Supabase.instance.client.storage
+          .from('quizzes')
+          .getPublicUrl(fileName);
+      setModalState(() {
+        _thumbnailUrl = url;
+        _isUploadingThumb = false;
+      });
+    } catch (e) {
+      setModalState(() => _isUploadingThumb = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      }
     }
   }
 

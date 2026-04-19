@@ -27,13 +27,22 @@ class QuizService {
     required String subject,
     String? lessonId,
     int coinValue = 100,
+    String ageLevel = '6+',
+    String? thumbnailUrl,
   }) async {
     await supabase.from('quizzes').insert({
       'title': title,
       'subject': subject,
       'lesson_id': lessonId,
       'coin_value': coinValue,
+      'age_level': ageLevel,
+      'thumbnail_url': thumbnailUrl,
     });
+  }
+
+  static Future<void> updateQuiz(
+      String id, Map<String, dynamic> data) async {
+    await supabase.from('quizzes').update(data).eq('id', id);
   }
 
   static Future<void> addQuestion({
@@ -64,10 +73,6 @@ class QuizService {
       'option_d_image_url': optionDImageUrl,
       'correct_answer': correctAnswer,
     });
-  }
-
-  static Future<void> updateQuiz(String id, Map<String, dynamic> data) async {
-    await supabase.from('quizzes').update(data).eq('id', id);
   }
 
   static Future<void> updateQuestion(

@@ -6,6 +6,7 @@ import '../../../core/providers/child_provider.dart';
 import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../core/widgets/child_avatar.dart';
+import '../../auth/screens/create_child_screen.dart';
 import 'login_screen.dart';
 import 'child_dashboard_screen.dart';
 import '../../parent/screens/reports_screen.dart';
@@ -29,115 +30,93 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   }
 
   Future<void> _loadChildren() async {
+    setState(() => _loadingChildren = true);
     final children = await ChildService.getChildren();
-    if (mounted) setState(() {
-      _children = children;
-      _loadingChildren = false;
-    });
+    if (mounted) {
+      setState(() {
+        _children = children;
+        _loadingChildren = false;
+      });
+    }
   }
 
-  // ── Switch Child dialog ──────────────────────────────────────────────────
-  void _showSwitchChildDialog() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+  void _switchToChild(ChildModel child) {
+    context.read<ChildProvider>().setActiveChild(child);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Switched to ${child.nickname}'),
+        duration: const Duration(seconds: 2),
       ),
-      builder: (ctx) {
-        final activeChild = context.read<ChildProvider>().activeChild;
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Drag handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const Text(
-                'Switch Child',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Select which child to view',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              if (_children.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: Text('No child profiles found.')),
-                )
-              else
-                ..._children.map((child) {
-                  final isActive = child.id == activeChild?.id;
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: ChildAvatar(
-                      avatarUrl: child.avatarUrl,
-                      nickname: child.nickname,
-                      radius: 24,
-                    ),
-                    title: Text(
-                      child.nickname,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isActive ? AppTheme.primary : AppTheme.textPrimary,
-                      ),
-                    ),
-                    subtitle: Text(
-                      child.childCode ?? '',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppTheme.textSecondary),
-                    ),
-                    trailing: isActive
-                        ? Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'Active',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.primary,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    )
-                        : const Icon(Icons.chevron_right,
-                        color: AppTheme.textSecondary),
-                    onTap: isActive
-                        ? null
-                        : () {
-                      context.read<ChildProvider>().setActiveChild(child);
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Switched to ${child.nickname}'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                  );
-                }),
-            ],
-          ),
-        );
-      },
     );
+  }
+
+  Future<void> _editChild(ChildModel child) async {
+    final controller = TextEditingController(text: child.nickname);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Edit Nickname'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Nickname',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Save')),
+        ],
+      ),
+    );
+    if (confirmed == true && controller.text.trim().isNotEmpty) {
+      await ChildService.updateChild(child.id, controller.text.trim());
+      await _loadChildren();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Nickname updated!')));
+      }
+    }
+  }
+
+  Future<void> _deleteChild(ChildModel child) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Profile'),
+        content: Text('Remove ${child.nickname}\'s profile? This cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete',
+                  style: TextStyle(color: AppTheme.danger))),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final activeChild = context.read<ChildProvider>().activeChild;
+    await ChildService.deleteChild(child.id);
+    await _loadChildren();
+
+    if (activeChild?.id == child.id && mounted) {
+      if (_children.isNotEmpty) {
+        context.read<ChildProvider>().setActiveChild(_children.first);
+      } else {
+        context.read<ChildProvider>().clearActiveChild();
+      }
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Profile deleted.')));
+    }
   }
 
   @override
@@ -164,77 +143,122 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 16),
-            const Text('Welcome, Parent!',
-                style:
-                TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text('What would you like to do?',
-                style: TextStyle(color: AppTheme.textSecondary)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 4),
 
-            // ── Active child chip + Switch button ────────────────────────
-            Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.primary.withOpacity(0.25)),
-              ),
-              child: Row(
-                children: [
-                  _loadingChildren
-                      ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                      : ChildAvatar(
-                    avatarUrl: activeChild?.avatarUrl,
-                    nickname: activeChild?.nickname ?? '?',
-                    radius: 20,
+            // ── Child Profiles section ───────────────────────────────────
+            _sectionHeader(Icons.child_care, 'Child Profiles', AppTheme.primary),
+            const SizedBox(height: 12),
+
+            if (_loadingChildren)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_children.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'No child profiles yet. Add one below!',
+                  style: const TextStyle(color: AppTheme.textSecondary),
+                ),
+              )
+            else
+              ..._children.map((child) {
+                final isActive = child.id == activeChild?.id;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: isActive
+                        ? const BorderSide(color: AppTheme.primary, width: 2)
+                        : BorderSide.none,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: ListTile(
+                    leading: ChildAvatar(
+                      avatarUrl: child.avatarUrl,
+                      nickname: child.nickname,
+                      radius: 22,
+                    ),
+                    title: Row(
                       children: [
-                        const Text(
-                          'Viewing child',
-                          style: TextStyle(
-                              fontSize: 11, color: AppTheme.textSecondary),
+                        Text(child.nickname,
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        if (isActive) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text('Active',
+                                style: TextStyle(
+                                    fontSize: 11, color: AppTheme.primary)),
+                          ),
+                        ],
+                      ],
+                    ),
+                    subtitle: Text('${child.coins} coins',
+                        style: const TextStyle(color: AppTheme.textSecondary)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!isActive)
+                          IconButton(
+                            icon: const Icon(Icons.switch_account,
+                                color: AppTheme.primary),
+                            tooltip: 'Switch to this profile',
+                            onPressed: () => _switchToChild(child),
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.edit,
+                              color: AppTheme.textSecondary),
+                          tooltip: 'Edit nickname',
+                          onPressed: () => _editChild(child),
                         ),
-                        Text(
-                          activeChild?.nickname ?? '—',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15),
+                        IconButton(
+                          icon: const Icon(Icons.delete,
+                              color: AppTheme.danger),
+                          tooltip: 'Delete profile',
+                          onPressed: () => _deleteChild(child),
                         ),
                       ],
                     ),
                   ),
-                  // ── Switch Child button ──────────────────────────────
-                  TextButton.icon(
-                    onPressed: _children.length > 1
-                        ? _showSwitchChildDialog
-                        : null, // greyed out if only 1 child
-                    icon: const Icon(Icons.swap_horiz, size: 18),
-                    label: const Text('Switch'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primary,
-                    ),
-                  ),
-                ],
+                );
+              }),
+
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                      const CreateChildScreen(isFirstTime: false)),
+                );
+                _loadChildren();
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add New Child Profile'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
+
+            // ── Quick Actions section ────────────────────────────────────
+            _sectionHeader(Icons.dashboard, 'Quick Actions', AppTheme.secondary),
+            const SizedBox(height: 12),
 
             _DashboardCard(
               icon: Icons.bar_chart,
@@ -244,16 +268,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ReportsScreen())),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _DashboardCard(
               icon: Icons.settings,
               title: 'Settings',
-              subtitle: 'Manage children profiles and account details',
+              subtitle: 'Account details and PIN security',
               color: AppTheme.secondary,
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const SettingsScreen())),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _DashboardCard(
               icon: Icons.child_care,
               title: 'Back to Child',
@@ -262,10 +286,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               onTap: () async {
                 final children = await ChildService.getChildren();
                 if (context.mounted && children.isNotEmpty) {
-                  final activeChild =
-                      context.read<ChildProvider>().activeChild ??
-                          children.first;
-                  context.read<ChildProvider>().setActiveChild(activeChild);
+                  final current =
+                      context.read<ChildProvider>().activeChild ?? children.first;
+                  context.read<ChildProvider>().setActiveChild(current);
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
@@ -275,14 +298,27 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 }
               },
             ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
+
+  Widget _sectionHeader(IconData icon, String title, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Text(title,
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+      ],
+    );
+  }
 }
 
-// ── Reusable dashboard card ─────────────────────────────────────────────────
 class _DashboardCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -303,7 +339,7 @@ class _DashboardCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
@@ -312,12 +348,12 @@ class _DashboardCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 28),
+              child: Icon(icon, color: color, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -326,8 +362,8 @@ class _DashboardCard extends StatelessWidget {
                 children: [
                   Text(title,
                       style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
+                          fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
                   Text(subtitle,
                       style: const TextStyle(
                           color: AppTheme.textSecondary, fontSize: 13)),

@@ -4,6 +4,8 @@ class QuizModel {
   final String subject;
   final String? lessonId;
   final int coinValue;
+  final String ageLevel;
+  final String? thumbnailUrl;
   final DateTime createdAt;
   final List<QuizQuestionModel> questions;
 
@@ -13,6 +15,8 @@ class QuizModel {
     required this.subject,
     this.lessonId,
     required this.coinValue,
+    this.ageLevel = '6+',
+    this.thumbnailUrl,
     required this.createdAt,
     this.questions = const [],
   });
@@ -24,6 +28,8 @@ class QuizModel {
       subject: map['subject'],
       lessonId: map['lesson_id'],
       coinValue: map['coin_value'] ?? 100,
+      ageLevel: map['age_level'] ?? '6+',
+      thumbnailUrl: map['thumbnail_url'],
       createdAt: DateTime.parse(map['created_at']),
       questions: map['quiz_questions'] != null
           ? (map['quiz_questions'] as List)

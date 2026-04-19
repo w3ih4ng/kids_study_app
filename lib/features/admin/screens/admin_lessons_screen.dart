@@ -28,6 +28,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
   String _selectedSubject = 'Math';
   String _selectedDifficulty = 'Easy';
   String _selectedType = 'youtube';
+  String _selectedAgeLevel = '6+';
 
   @override
   void initState() {
@@ -49,6 +50,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
     _selectedDifficulty = 'Easy';
     _selectedType = 'youtube';
     _uploadedImageUrl = null;
+    _selectedAgeLevel = '6+';
   }
 
   Future<void> _showForm({LessonModel? lesson}) async {
@@ -59,6 +61,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
       _selectedSubject = lesson.subject;
       _selectedDifficulty = lesson.difficulty;
       _selectedType = lesson.type;
+      _selectedAgeLevel = lesson.ageLevel;
     } else {
       _resetForm();
     }
@@ -122,6 +125,17 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                       .toList(),
                   onChanged: (v) =>
                       setModalState(() => _selectedDifficulty = v!),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: _selectedAgeLevel,
+                  decoration: const InputDecoration(
+                      labelText: 'Age Level',
+                      border: OutlineInputBorder()),
+                  items: ['4+', '5+', '6+', '7+', '8+']
+                      .map((a) => DropdownMenuItem(value: a, child: Text('$a years old')))
+                      .toList(),
+                  onChanged: (v) => setModalState(() => _selectedAgeLevel = v!),
                 ),
                 const SizedBox(height: 12),
                 // Type toggle
@@ -271,6 +285,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                         type: _selectedType,
                         contentUrl: _urlController.text.trim(),
                         description: _descController.text.trim(),
+                        ageLevel: _selectedAgeLevel,
                       );
                       if (context.mounted) Navigator.pop(context);
                       _load();
@@ -286,6 +301,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                         'type': _selectedType,
                         'content_url': _urlController.text.trim(),
                         'description': _descController.text.trim(),
+                        'age_level': _selectedAgeLevel,
                       });
                     }
                     if (context.mounted) Navigator.pop(context);

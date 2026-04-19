@@ -79,84 +79,102 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     }
   }
 
-  // ── Home tab AppBar ──────────────────────────────────────────────────────
-  // Taller bar, ripple feedback, pencil icon so users know it's tappable.
+  // ── Home AppBar ──────────────────────────────────────────────────────────
   PreferredSizeWidget _buildHomeAppBar(child) {
+    final nickname = child?.nickname ?? '';
+    final avatarUrl = child?.avatarUrl as String?;
+    final initial = nickname.isNotEmpty ? nickname[0].toUpperCase() : '?';
+
     return AppBar(
       automaticallyImplyLeading: false,
-      // ① Make the bar noticeably taller
-      toolbarHeight: 72,
+      // ① Tall enough to breathe
+      toolbarHeight: 80,
       title: Material(
         color: Colors.transparent,
         child: InkWell(
-          // ② Ripple effect confirms the whole row is tappable
           borderRadius: BorderRadius.circular(40),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const ChildProfileScreen()),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ③ Avatar — always has a coloured fallback (initial letter)
+                // ── Avatar ───────────────────────────────────────────────
                 Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    ChildAvatar(
-                      avatarUrl: child?.avatarUrl,
-                      // If nickname is somehow blank, '?' is shown by the widget
-                      nickname: child?.nickname ?? '',
-                      radius: 26,
+                    // If the child has uploaded a photo, show it.
+                    // Otherwise show a WHITE circle with a COLOURED initial
+                    // so it's always visible on the indigo AppBar.
+                    avatarUrl != null && avatarUrl.isNotEmpty
+                        ? CircleAvatar(
+                      radius: 28,
+                      backgroundImage: NetworkImage(avatarUrl),
+                      onBackgroundImageError: (_, __) {},
+                    )
+                        : CircleAvatar(
+                      radius: 28,
+                      // White background so the letter pops against
+                      // the indigo AppBar
+                      backgroundColor: Colors.white.withOpacity(0.6),
+                      child: Text(
+                        initial,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          // Indigo letter on white circle
+                          color: Color(0xFF4F46E5),
+                        ),
+                      ),
                     ),
-                    // ④ Small pencil badge so it's obvious this is editable
+                    // ② Pencil badge
                     Positioned(
-                      right: 0,
-                      bottom: 0,
+                      right: -2,
+                      bottom: -2,
                       child: Container(
-                        padding: const EdgeInsets.all(3),
+                        padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.edit,
-                          size: 11,
-                          color: Color(0xFF4F46E5), // AppTheme.primary
+                          size: 12,
+                          color: Color(0xFF4F46E5),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
+                // ── Name column ──────────────────────────────────────────
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ⑤ "Hello," label above the name for a friendlier look
                     const Text(
                       'Hello,',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.white70),
                     ),
-                    Text(
-                      child?.nickname ?? 'Learner',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          nickname.isEmpty ? 'Learner' : nickname,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.chevron_right,
+                            color: Colors.white70, size: 18),
+                      ],
                     ),
                   ],
-                ),
-                // ⑥ Chevron — the clearest possible tap hint
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Colors.white70,
-                  size: 18,
                 ),
               ],
             ),
@@ -174,8 +192,9 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
   PreferredSizeWidget _buildDefaultAppBar(String title) {
     return AppBar(
       automaticallyImplyLeading: false,
-      toolbarHeight: 72,
-      title: Text(title),
+      toolbarHeight: 80,
+      title: Text(title,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
     );
   }
 

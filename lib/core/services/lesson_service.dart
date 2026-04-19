@@ -26,6 +26,7 @@ class LessonService {
     required String type,
     String? contentUrl,
     String? description,
+    String ageLevel = '6+',
   }) async {
     await supabase.from('lessons').insert({
       'title': title,
@@ -34,6 +35,7 @@ class LessonService {
       'type': type,
       'content_url': contentUrl,
       'description': description,
+      'age_level': ageLevel,
     });
   }
 

@@ -18,7 +18,10 @@ class _LessonListScreenState extends State<LessonListScreen>
   late TabController _tabController;
   List<LessonModel> _mathLessons = [];
   List<LessonModel> _englishLessons = [];
+  String _selectedAge = 'All';
   bool _isLoading = true;
+
+  final List<String> _ageLevels = ['All', '4+', '5+', '6+', '7+', '8+'];
 
   @override
   void initState() {
@@ -40,22 +43,70 @@ class _LessonListScreenState extends State<LessonListScreen>
     }
   }
 
+  List<LessonModel> _filtered(List<LessonModel> lessons) {
+    if (_selectedAge == 'All') return lessons;
+    return lessons.where((l) => l.ageLevel == _selectedAge).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Tab bar for Math / English
+        // Subject tabs
         Container(
-          color: AppTheme.primary,
+          color: AppTheme.lessonsColor,
           child: TabBar(
             controller: _tabController,
             indicatorColor: Colors.white,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white60,
-            tabs: const [
-              Tab(text: 'Math'),
-              Tab(text: 'English'),
-            ],
+            tabs: const [Tab(text: 'Math'), Tab(text: 'English')],
+          ),
+        ),
+        // Age filter chips
+        Container(
+          color: AppTheme.lessonsColor.withOpacity(0.06),
+          padding: const EdgeInsets.symmetric(
+              horizontal: 12, vertical: 8),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _ageLevels.map((age) {
+                final selected = _selectedAge == age;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedAge = age),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppTheme.lessonsColor
+                            : AppTheme.lessonsColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: selected
+                              ? AppTheme.lessonsColor
+                              : AppTheme.lessonsColor.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        age == 'All' ? 'All Ages' : '$age yrs',
+                        style: TextStyle(
+                          color: selected
+                              ? Colors.white
+                              : AppTheme.lessonsColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
         Expanded(
@@ -64,8 +115,8 @@ class _LessonListScreenState extends State<LessonListScreen>
               : TabBarView(
             controller: _tabController,
             children: [
-              _buildLessonList(_mathLessons),
-              _buildLessonList(_englishLessons),
+              _buildGrid(_filtered(_mathLessons)),
+              _buildGrid(_filtered(_englishLessons)),
             ],
           ),
         ),
@@ -73,15 +124,21 @@ class _LessonListScreenState extends State<LessonListScreen>
     );
   }
 
-  Widget _buildLessonList(List<LessonModel> lessons) {
+  Widget _buildGrid(List<LessonModel> lessons) {
     if (lessons.isEmpty) {
       return const EmptyStateWidget(
-        message: 'No lessons available yet.',
+        message: 'No lessons available.',
         icon: Icons.play_lesson_outlined,
       );
     }
-    return ListView.builder(
+    return GridView.builder(
       padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
       itemCount: lessons.length,
       itemBuilder: (_, i) => _lessonCard(lessons[i]),
     );
@@ -95,80 +152,108 @@ class _LessonListScreenState extends State<LessonListScreen>
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => LessonDetailScreen(lesson: lesson)),
+        MaterialPageRoute(
+            builder: (_) => LessonDetailScreen(lesson: lesson)),
       ),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  lesson.type == 'youtube' ? Icons.play_circle : Icons.image,
-                  color: color,
-                  size: 28,
-                ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Thumbnail
+            Expanded(
+              flex: 3,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16)),
+                child: lesson.thumbnailUrl != null
+                    ? Image.network(
+                  lesson.thumbnailUrl!,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      _placeholderThumb(color),
+                )
+                    : _placeholderThumb(color),
               ),
-              const SizedBox(width: 16),
-              Expanded(
+            ),
+            // Info
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(lesson.title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 4),
-                    if (lesson.description != null)
-                      Text(lesson.description!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    Row(
+                    Text(
+                      lesson.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13),
+                    ),
+                    const Spacer(),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
                       children: [
-                        _tag(lesson.difficulty, _difficultyColor(lesson.difficulty)),
-                        const SizedBox(width: 8),
-                        _tag(lesson.subject, color),
+                        _badge(lesson.difficulty,
+                            _difficultyColor(lesson.difficulty)),
+                        _badge(lesson.ageLevel, AppTheme.secondary),
                       ],
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Color _difficultyColor(String difficulty) {
-    switch (difficulty) {
+  Widget _placeholderThumb(Color color) {
+    return Container(
+      color: color.withOpacity(0.12),
+      child: Center(
+        child: Icon(Icons.play_lesson,
+            color: color.withOpacity(0.5), size: 36),
+      ),
+    );
+  }
+
+  Widget _badge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Color _difficultyColor(String d) {
+    switch (d) {
       case 'Easy': return AppTheme.success;
       case 'Medium': return AppTheme.accent;
       case 'Hard': return AppTheme.danger;
       default: return AppTheme.textSecondary;
     }
-  }
-
-  Widget _tag(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 11, color: color, fontWeight: FontWeight.bold)),
-    );
   }
 }
