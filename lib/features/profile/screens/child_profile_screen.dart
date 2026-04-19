@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -107,7 +108,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        AppSnackbar.error(context, 'Failed to upload picture. Please try again.');
+        AppSnackbar.error(
+            context, 'Failed to upload picture. Please try again.');
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -188,9 +190,11 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             const SizedBox(height: 16),
             Text(
               child?.nickname ?? '',
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
+            // Coins card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -209,7 +213,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('My Coins',
-                          style: TextStyle(color: AppTheme.textSecondary)),
+                          style:
+                          TextStyle(color: AppTheme.textSecondary)),
                       Text(
                         '${child?.coins ?? 0}',
                         style: const TextStyle(
@@ -223,6 +228,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            // Friend code card with copy button
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -238,14 +244,48 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                       style: TextStyle(
                           color: AppTheme.textSecondary, fontSize: 13)),
                   const SizedBox(height: 6),
-                  Text(
-                    child?.childCode ?? '--------',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                      color: AppTheme.primary,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        child?.childCode ?? '--------',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      if ((child?.childCode ?? '').isNotEmpty) ...[
+                        const SizedBox(width: 10),
+                        Tooltip(
+                          message: 'Copy friend code',
+                          child: InkWell(
+                            onTap: () {
+                              Clipboard.setData(
+                                ClipboardData(text: child!.childCode!),
+                              );
+                              AppSnackbar.success(context,
+                                  'Code "${child.childCode}" copied!');
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color:
+                                AppTheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.copy_rounded,
+                                size: 18,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   const Text(
