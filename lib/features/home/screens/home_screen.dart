@@ -7,6 +7,7 @@ import '../../../core/services/leaderboard_service.dart';
 import '../../../core/widgets/child_avatar.dart';
 import '../../../models/friend_model.dart';
 import '../../../models/leaderboard_model.dart';
+import '../../social/screens/friend_profile_screen.dart';
 import '../../social/screens/friends_screen.dart';
 import '../../social/screens/leaderboard_screen.dart';
 
@@ -106,43 +107,58 @@ class HomeScreenState extends State<HomeScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(
                         right: 12),
-                    child: Column(
-                      children: [
-                        Stack(
-                          children: [
-                            ChildAvatar(
-                              nickname: friend
-                                  .friendInfo
-                                  ?.nickname ??
-                                  '?',
-                              avatarUrl: friend
-                                  .friendInfo
-                                  ?.avatarUrl,
-                              radius: 28,
+                    child: GestureDetector(
+                      onTap: () {
+                        final info = friend.friendInfo;
+                        if (info != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  FriendProfileScreen(
+                                      friend: info),
                             ),
-                            if (friend.isBestFriend)
-                              Positioned(
-                                right: 0,
-                                bottom: 0,
-                                child: const Text(
-                                    '⭐',
-                                    style: TextStyle(
-                                        fontSize:
-                                        12)),
+                          );
+                        }
+                      },
+                      child: Column(
+                        children: [
+                          Stack(
+                            children: [
+                              ChildAvatar(
+                                nickname: friend
+                                    .friendInfo
+                                    ?.nickname ??
+                                    '?',
+                                avatarUrl: friend
+                                    .friendInfo
+                                    ?.avatarUrl,
+                                radius: 28,
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          friend.friendInfo
-                              ?.nickname ??
-                              '?',
-                          style: const TextStyle(
-                              fontSize: 11),
-                          overflow:
-                          TextOverflow.ellipsis,
-                        ),
-                      ],
+                              if (friend.isBestFriend)
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: const Text(
+                                      '⭐',
+                                      style: TextStyle(
+                                          fontSize:
+                                          12)),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            friend.friendInfo
+                                ?.nickname ??
+                                '?',
+                            style: const TextStyle(
+                                fontSize: 11),
+                            overflow:
+                            TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -200,65 +216,79 @@ class HomeScreenState extends State<HomeScreen> {
                 final isMe =
                     entry.childId == child?.id;
 
-                return Container(
-                  margin: const EdgeInsets.only(
-                      bottom: 8),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? AppTheme.primary
-                        .withOpacity(0.1)
-                        : AppTheme.surface,
-                    borderRadius:
-                    BorderRadius.circular(12),
-                    border: Border.all(
-                        color: isMe
-                            ? AppTheme.primary
-                            : AppTheme.border),
+                return InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: isMe
+                      ? null
+                      : () => showModalBottomSheet(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(24)),
+                    ),
+                    builder: (_) =>
+                        LimitedProfileSheet(entry: entry),
                   ),
-                  child: Row(
-                    children: [
-                      Text(
-                        rank == 1
-                            ? '🥇'
-                            : rank == 2
-                            ? '🥈'
-                            : '🥉',
-                        style: const TextStyle(
-                            fontSize: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      ChildAvatar(
-                        nickname: entry.childInfo
-                            ?.nickname ??
-                            '?',
-                        avatarUrl:
-                        entry.childInfo?.avatarUrl,
-                        radius: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          entry.childInfo?.nickname ??
-                              'Unknown',
-                          style: TextStyle(
-                            fontWeight:
-                            FontWeight.bold,
-                            color: isMe
-                                ? AppTheme.primary
-                                : AppTheme.textPrimary,
+                  child: Container(
+                    margin: const EdgeInsets.only(
+                        bottom: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isMe
+                          ? AppTheme.primary
+                          .withOpacity(0.1)
+                          : AppTheme.surface,
+                      borderRadius:
+                      BorderRadius.circular(12),
+                      border: Border.all(
+                          color: isMe
+                              ? AppTheme.primary
+                              : AppTheme.border),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          rank == 1
+                              ? '🥇'
+                              : rank == 2
+                              ? '🥈'
+                              : '🥉',
+                          style: const TextStyle(
+                              fontSize: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        ChildAvatar(
+                          nickname: entry.childInfo
+                              ?.nickname ??
+                              '?',
+                          avatarUrl:
+                          entry.childInfo?.avatarUrl,
+                          radius: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            entry.childInfo?.nickname ??
+                                'Unknown',
+                            style: TextStyle(
+                              fontWeight:
+                              FontWeight.bold,
+                              color: isMe
+                                  ? AppTheme.primary
+                                  : AppTheme.textPrimary,
+                            ),
                           ),
                         ),
-                      ),
-                      Text(
-                        '${entry.score} pts',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
+                        Text(
+                          '${entry.score} pts',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               }).toList(),

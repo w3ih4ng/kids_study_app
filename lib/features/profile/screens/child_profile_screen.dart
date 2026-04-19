@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -248,14 +249,64 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                       style: TextStyle(
                           color: AppTheme.textSecondary, fontSize: 13)),
                   const SizedBox(height: 6),
-                  Text(
-                    child?.childCode ?? '--------',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                      color: AppTheme.primary,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        child?.childCode ?? '--------',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      if ((child?.childCode ?? '').isNotEmpty) ...[
+                        const SizedBox(width: 10),
+                        Tooltip(
+                          message: 'Copy friend code',
+                          child: InkWell(
+                            onTap: () {
+                              Clipboard.setData(
+                                ClipboardData(text: child!.childCode!),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle,
+                                          color: Colors.white, size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                          'Code "${child.childCode}" copied!'),
+                                    ],
+                                  ),
+                                  backgroundColor: AppTheme.success,
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                      BorderRadius.circular(12)),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.copy_rounded,
+                                size: 18,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   const Text(

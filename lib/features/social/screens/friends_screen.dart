@@ -8,6 +8,7 @@ import '../../../core/widgets/child_avatar.dart';
 import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../models/friend_model.dart';
+import 'friend_profile_screen.dart';   // ← NEW
 import 'qr_scanner_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
@@ -35,8 +36,7 @@ class _FriendsScreenState extends State<FriendsScreen>
     setState(() => _isLoading = true);
     final child = context.read<ChildProvider>().activeChild!;
     final friends = await FriendService.getFriends(child.id);
-    final requests =
-    await FriendService.getPendingRequests(child.id);
+    final requests = await FriendService.getPendingRequests(child.id);
     if (mounted) {
       setState(() {
         _friends = friends;
@@ -51,8 +51,7 @@ class _FriendsScreenState extends State<FriendsScreen>
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('My QR Code',
-            textAlign: TextAlign.center),
+        title: const Text('My QR Code', textAlign: TextAlign.center),
         content: SizedBox(
           width: 200,
           child: Column(
@@ -67,8 +66,7 @@ class _FriendsScreenState extends State<FriendsScreen>
               const SizedBox(height: 12),
               Text(child.nickname,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16)),
+                      fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -88,8 +86,7 @@ class _FriendsScreenState extends State<FriendsScreen>
               const SizedBox(height: 4),
               const Text(
                 'Ask your friend to scan this!',
-                style:
-                TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: AppTheme.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -122,22 +119,19 @@ class _FriendsScreenState extends State<FriendsScreen>
             left: 20,
             right: 20,
             top: 20,
-            bottom:
-            MediaQuery.of(context).viewInsets.bottom + 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text('Add Friend',
                   style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
+                      fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               const Text(
                 'Search by nickname or friend code',
                 style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13),
+                    color: AppTheme.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -153,8 +147,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                     return;
                   }
                   setModalState(() => isSearching = true);
-                  final found =
-                  await FriendService.searchChildren(
+                  final found = await FriendService.searchChildren(
                     query: value.trim(),
                     currentChildId: child.id,
                   );
@@ -167,13 +160,12 @@ class _FriendsScreenState extends State<FriendsScreen>
               const SizedBox(height: 12),
               if (isSearching)
                 const CircularProgressIndicator()
-              else if (results.isEmpty &&
-                  controller.text.length >= 2)
+              else if (results.isEmpty && controller.text.length >= 2)
                 const Padding(
                   padding: EdgeInsets.all(16),
                   child: Text('No children found',
-                      style: TextStyle(
-                          color: AppTheme.textSecondary)),
+                      style:
+                      TextStyle(color: AppTheme.textSecondary)),
                 )
               else
                 ...results.map((result) {
@@ -224,14 +216,25 @@ class _FriendsScreenState extends State<FriendsScreen>
       ),
     );
     if (confirmed == true) {
-      final child =
-      context.read<ChildProvider>().activeChild!;
+      final child = context.read<ChildProvider>().activeChild!;
       await FriendService.removeFriend(
         childId: child.id,
         friendId: friend.friendId,
       );
       _load();
     }
+  }
+
+  // ── NEW: navigate to friend's full profile ──────────────
+  void _openFriendProfile(FriendModel friend) {
+    final info = friend.friendInfo;
+    if (info == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FriendProfileScreen(friend: info),
+      ),
+    );
   }
 
   @override
@@ -330,63 +333,69 @@ class _FriendsScreenState extends State<FriendsScreen>
         final info = friend.friendInfo;
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
-          child: ListTile(
-            leading: ChildAvatar(
-              nickname: info?.nickname ?? '?',
-              avatarUrl: info?.avatarUrl,
-              radius: 22,
-            ),
-            title: Row(
-              children: [
-                Text(
-                  info?.nickname ?? 'Unknown',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold),
-                ),
-                if (friend.isBestFriend) ...[
-                  const SizedBox(width: 6),
-                  const Text('⭐',
-                      style: TextStyle(fontSize: 14)),
-                ],
-              ],
-            ),
-            subtitle: Text(
-              info?.childCode ?? '',
-              style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.textSecondary,
-                  letterSpacing: 2),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    friend.isBestFriend
-                        ? Icons.star
-                        : Icons.star_border,
-                    color: friend.isBestFriend
-                        ? AppTheme.accent
-                        : AppTheme.textSecondary,
+          // ── Tapping the card opens the friend's profile ──
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _openFriendProfile(friend),
+            child: ListTile(
+              leading: ChildAvatar(
+                nickname: info?.nickname ?? '?',
+                avatarUrl: info?.avatarUrl,
+                radius: 22,
+              ),
+              title: Row(
+                children: [
+                  Text(
+                    info?.nickname ?? 'Unknown',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  onPressed: () async {
-                    final child = context
-                        .read<ChildProvider>()
-                        .activeChild!;
-                    await FriendService.toggleBestFriend(
-                      childId: child.id,
-                      friendId: friend.friendId,
-                      isBestFriend: !friend.isBestFriend,
-                    );
-                    _load();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.person_remove,
-                      color: AppTheme.danger),
-                  onPressed: () => _removeFriend(friend),
-                ),
-              ],
+                  if (friend.isBestFriend) ...[
+                    const SizedBox(width: 6),
+                    const Text('⭐', style: TextStyle(fontSize: 14)),
+                  ],
+                ],
+              ),
+              subtitle: Text(
+                info?.childCode ?? '',
+                style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                    letterSpacing: 2),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // View profile hint icon
+                  const Icon(Icons.chevron_right,
+                      color: AppTheme.textSecondary, size: 20),
+                  IconButton(
+                    icon: Icon(
+                      friend.isBestFriend
+                          ? Icons.star
+                          : Icons.star_border,
+                      color: friend.isBestFriend
+                          ? AppTheme.accent
+                          : AppTheme.textSecondary,
+                    ),
+                    onPressed: () async {
+                      final child = context
+                          .read<ChildProvider>()
+                          .activeChild!;
+                      await FriendService.toggleBestFriend(
+                        childId: child.id,
+                        friendId: friend.friendId,
+                        isBestFriend: !friend.isBestFriend,
+                      );
+                      _load();
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.person_remove,
+                        color: AppTheme.danger),
+                    onPressed: () => _removeFriend(friend),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -422,14 +431,12 @@ class _FriendsScreenState extends State<FriendsScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         sender?.nickname ?? 'Unknown',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15),
+                            fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       Text(
                         sender?.childCode ?? '',
@@ -449,7 +456,6 @@ class _FriendsScreenState extends State<FriendsScreen>
                 ),
                 Column(
                   children: [
-                    // Accept
                     ElevatedButton(
                       onPressed: () async {
                         final child = context
@@ -475,29 +481,25 @@ class _FriendsScreenState extends State<FriendsScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         minimumSize: Size.zero,
-                        tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: const Text('Accept',
                           style: TextStyle(fontSize: 12)),
                     ),
                     const SizedBox(height: 4),
-                    // Decline
                     OutlinedButton(
                       onPressed: () async {
-                        await FriendService.declineRequest(
-                            request.id);
+                        await FriendService.declineRequest(request.id);
                         _load();
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.danger,
-                        side: const BorderSide(
-                            color: AppTheme.danger),
+                        side:
+                        const BorderSide(color: AppTheme.danger),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         minimumSize: Size.zero,
-                        tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: const Text('Decline',
                           style: TextStyle(fontSize: 12)),
@@ -513,7 +515,7 @@ class _FriendsScreenState extends State<FriendsScreen>
   }
 }
 
-// ── Add button widget ─────────────────────────────────────
+// ── Add button widget ──────────────────────────────────────
 class _AddButton extends StatefulWidget {
   final ChildInfo result;
   final dynamic child;
@@ -540,7 +542,10 @@ class _AddButtonState extends State<_AddButton> {
       friendId: widget.result.id,
     );
     if (isFriend) {
-      setState(() { _status = 'friends'; _isLoading = false; });
+      setState(() {
+        _status = 'friends';
+        _isLoading = false;
+      });
       return;
     }
     final reqStatus = await FriendService.getRequestStatus(
@@ -572,8 +577,8 @@ class _AddButtonState extends State<_AddButton> {
 
     if (_status == 'pending') {
       return const Text('Requested',
-          style: TextStyle(
-              color: AppTheme.textSecondary, fontSize: 12));
+          style:
+          TextStyle(color: AppTheme.textSecondary, fontSize: 12));
     }
 
     return ElevatedButton(
@@ -597,8 +602,7 @@ class _AddButtonState extends State<_AddButton> {
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      child:
-      const Text('Add', style: TextStyle(fontSize: 12)),
+      child: const Text('Add', style: TextStyle(fontSize: 12)),
     );
   }
 }
