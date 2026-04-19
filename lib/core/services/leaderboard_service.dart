@@ -11,7 +11,7 @@ class LeaderboardService {
   }) async {
     final response = await supabase
         .from('leaderboard')
-        .select('*, children(id, nickname, avatar_url)')
+        .select('*, children(id, nickname, avatar_url, child_code)')
         .order('score', ascending: false)
         .limit(limit);
     return (response as List)
@@ -36,7 +36,7 @@ class LeaderboardService {
       String childId) async {
     final response = await supabase
         .from('leaderboard')
-        .select('*, children(id, nickname, avatar_url)')
+        .select('*, children(id, nickname, avatar_url, child_code)')
         .eq('child_id', childId)
         .limit(1);
     final list = response as List;
@@ -77,7 +77,7 @@ class LeaderboardService {
 
     final response = await supabase
         .from('leaderboard')
-        .select('*, children(id, nickname, avatar_url)')
+        .select('*, children(id, nickname, avatar_url, child_code)')
         .inFilter('child_id', friendIds)
         .order('score', ascending: false);
 
