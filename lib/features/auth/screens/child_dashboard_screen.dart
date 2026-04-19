@@ -79,33 +79,88 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     }
   }
 
-  // Home tab AppBar — shows avatar + name + coins
+  // ── Home tab AppBar ──────────────────────────────────────────────────────
+  // Taller bar, ripple feedback, pencil icon so users know it's tappable.
   PreferredSizeWidget _buildHomeAppBar(child) {
     return AppBar(
       automaticallyImplyLeading: false,
-      title: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ChildProfileScreen()),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ChildAvatar(
-              avatarUrl: child?.avatarUrl,
-              nickname: child?.nickname ?? '',
-              radius: 22,                    // slightly bigger avatar
+      // ① Make the bar noticeably taller
+      toolbarHeight: 72,
+      title: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          // ② Ripple effect confirms the whole row is tappable
+          borderRadius: BorderRadius.circular(40),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChildProfileScreen()),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ③ Avatar — always has a coloured fallback (initial letter)
+                Stack(
+                  children: [
+                    ChildAvatar(
+                      avatarUrl: child?.avatarUrl,
+                      // If nickname is somehow blank, '?' is shown by the widget
+                      nickname: child?.nickname ?? '',
+                      radius: 26,
+                    ),
+                    // ④ Small pencil badge so it's obvious this is editable
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          size: 11,
+                          color: Color(0xFF4F46E5), // AppTheme.primary
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ⑤ "Hello," label above the name for a friendlier look
+                    const Text(
+                      'Hello,',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    Text(
+                      child?.nickname ?? 'Learner',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                // ⑥ Chevron — the clearest possible tap hint
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.chevron_right,
+                  color: Colors.white70,
+                  size: 18,
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-            Text(
-              child?.nickname ?? 'Learning',
-              style: const TextStyle(
-                fontSize: 24,                // bigger
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       actions: const [
@@ -115,10 +170,11 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     );
   }
 
-  // Other tabs AppBar — shows screen title only
+  // ── Other tabs AppBar ────────────────────────────────────────────────────
   PreferredSizeWidget _buildDefaultAppBar(String title) {
     return AppBar(
       automaticallyImplyLeading: false,
+      toolbarHeight: 72,
       title: Text(title),
     );
   }
@@ -162,18 +218,17 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
             currentIndex: _currentIndex,
             onTap: (index) {
               setState(() => _currentIndex = index);
-              // Reload home when navigating back to it
               if (index == 0) {
                 _homeKey.currentState?.reload();
               }
             },
           ),
         ),
-          Positioned(
-            bottom: 80, // above nav bar
-            right: 16,
-            child: _buildFloatingPet(),
-          ),
+        Positioned(
+          bottom: 80,
+          right: 16,
+          child: _buildFloatingPet(),
+        ),
       ],
     );
   }

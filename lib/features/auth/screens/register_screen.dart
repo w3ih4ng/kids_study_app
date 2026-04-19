@@ -16,33 +16,110 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmController = TextEditingController();
   final _pinController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+
+  // ── Password rules ─────────────────────────────────────────────────────
+  // Applied only to NEW registrations; existing accounts are unaffected.
+  static const int _minLength = 8;
+  static final RegExp _hasLetter = RegExp(r'[A-Za-z]');
+  static final RegExp _hasDigit = RegExp(r'[0-9]');
+  static final RegExp _hasSymbol =
+  RegExp(r'[!@#\$%^&*()_+\-=\[\]{}|;:,.<>?/\\~`"\' ']');
+
+  String? _validatePassword(String password) {
+    if (password.length < _minLength) {
+      return 'Password must be at least $_minLength characters.';
+    }
+    if (!_hasLetter.hasMatch(password)) {
+      return 'Password must include at least one letter.';
+    }
+    if (!_hasDigit.hasMatch(password)) {
+      return 'Password must include at least one number.';
+    }
+    if (!_hasSymbol.hasMatch(password)) {
+      return 'Password must include at least one symbol (e.g. @, #, !).';
+    }
+    return null; // valid
+  }
+
+  // ── Password strength indicator ────────────────────────────────────────
+  int get _strengthScore {
+    final p = _passwordController.text;
+    int score = 0;
+    if (p.length >= _minLength) score++;
+    if (_hasLetter.hasMatch(p)) score++;
+    if (_hasDigit.hasMatch(p)) score++;
+    if (_hasSymbol.hasMatch(p)) score++;
+    return score; // 0–4
+  }
+
+  Color get _strengthColor {
+    switch (_strengthScore) {
+      case 1:
+        return Colors.red;
+      case 2:
+        return Colors.orange;
+      case 3:
+        return Colors.amber;
+      case 4:
+        return Colors.green;
+      default:
+        return Colors.grey.shade300;
+    }
+  }
+
+  String get _strengthLabel {
+    switch (_strengthScore) {
+      case 1:
+        return 'Weak';
+      case 2:
+        return 'Fair';
+      case 3:
+        return 'Good';
+      case 4:
+        return 'Strong ✓';
+      default:
+        return '';
+    }
+  }
 
   Future<void> _register() async {
-    if (_passwordController.text != _confirmController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwords do not match')));
+    final password = _passwordController.text.trim();
+
+    // ① Password strength check (new accounts only)
+    final passwordError = _validatePassword(password);
+    if (passwordError != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(passwordError)));
       return;
     }
+
+    // ② Passwords match
+    if (password != _confirmController.text.trim()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Passwords do not match.')));
+      return;
+    }
+
+    // ③ PIN length
     if (_pinController.text.length != 4) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PIN must be exactly 4 digits')));
+          const SnackBar(content: Text('PIN must be exactly 4 digits.')));
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      // Step 1: Register with Supabase Auth
       await AuthService.register(
         _emailController.text.trim(),
-        _passwordController.text.trim(),
+        password,
       );
 
-      // Step 2: Save the PIN into the profiles table
       final userId = Supabase.instance.client.auth.currentUser!.id;
       await Supabase.instance.client
           .from('profiles')
-          .update({'pin': _pinController.text})
-          .eq('id', userId);
+          .update({'pin': _pinController.text}).eq('id', userId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -76,12 +153,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text('Register as Parent',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  style:
+                  TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               const Text(
                   'Create an account to manage your children profiles.',
                   style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 32),
+
+              // Email
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -91,27 +171,82 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(Icons.email)),
               ),
               const SizedBox(height: 16),
+
+              // Password
               TextField(
                 controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock)),
+                obscureText: _obscurePassword,
+                onChanged: (_) => setState(() {}), // rebuild strength bar
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  // Inline hint about requirements
+                  helperText:
+                  'Min 8 chars · letter · number · symbol (e.g. @#!)',
+                  helperMaxLines: 2,
+                ),
               ),
+
+              // ── Strength bar ────────────────────────────────────────────
+              if (_passwordController.text.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: _strengthScore / 4,
+                          color: _strengthColor,
+                          backgroundColor: Colors.grey.shade200,
+                          minHeight: 6,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      _strengthLabel,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: _strengthColor,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 16),
+
+              // Confirm password
               TextField(
                 controller: _confirmController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                    labelText: 'Confirm Password',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock_outline)),
+                obscureText: _obscureConfirm,
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirm
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
+
               // PIN section
               const Text('Set Your Parent PIN',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style:
+                  TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               const Text(
                   'You will need this PIN to access the parent dashboard.',
@@ -128,6 +263,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(Icons.pin)),
               ),
               const SizedBox(height: 24),
+
               ElevatedButton(
                 onPressed: _isLoading ? null : _register,
                 style: ElevatedButton.styleFrom(
@@ -137,7 +273,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Register', style: TextStyle(fontSize: 16)),
+                    : const Text('Register',
+                    style: TextStyle(fontSize: 16)),
               ),
             ],
           ),
