@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/child_provider.dart';
 import '../../../core/services/friend_service.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});
@@ -24,11 +26,8 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     final scannedId = barcode!.rawValue!;
     final child = context.read<ChildProvider>().activeChild!;
 
-    // Prevent scanning yourself
     if (scannedId == child.id) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("That's your own QR code!")),
-      );
+      AppSnackbar.warning(context, "That's your own QR code!");
       return;
     }
 
@@ -36,8 +35,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     controller.stop();
 
     try {
-      // Verify scanned child exists
-      final check = await supabase
+      final check = await Supabase.instance.client
           .from('children_public')
           .select('id, nickname')
           .eq('id', scannedId)
@@ -45,15 +43,13 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
       if ((check as List).isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid QR code!')),
-          );
+          AppSnackbar.error(context, 'Invalid QR code. Please try again.');
           setState(() => _isProcessing = false);
           controller.start();
         }
         return;
       }
-      // Check if already friends
+
       final already = await FriendService.isFriend(
         childId: child.id,
         friendId: scannedId,
@@ -61,32 +57,38 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
       if (already) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Already friends!')),
-          );
+          AppSnackbar.info(context, 'You are already friends!');
           Navigator.pop(context);
         }
         return;
       }
 
-      // After verifying child exists, send request instead of direct add
+      // Check if request already sent
+      final existingStatus = await FriendService.getRequestStatus(
+        senderId: child.id,
+        receiverId: scannedId,
+      );
+
+      if (existingStatus == 'pending') {
+        if (mounted) {
+          AppSnackbar.info(context, 'Friend request already sent!');
+          Navigator.pop(context);
+        }
+        return;
+      }
+
       await FriendService.sendRequest(
         senderId: child.id,
         receiverId: scannedId,
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Friend request sent! 🎉')),
-        );
+        AppSnackbar.success(context, 'Friend request sent! 🎉');
         Navigator.pop(context);
       }
-
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        AppSnackbar.error(context, 'Something went wrong. Please try again.');
         setState(() => _isProcessing = false);
         controller.start();
       }
@@ -105,23 +107,17 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       appBar: AppBar(title: const Text('Scan QR Code')),
       body: Stack(
         children: [
-          MobileScanner(
-            controller: controller,
-            onDetect: _onDetect,
-          ),
-          // Overlay
+          MobileScanner(controller: controller, onDetect: _onDetect),
           Center(
             child: Container(
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                border: Border.all(
-                    color: AppTheme.primary, width: 3),
+                border: Border.all(color: AppTheme.primary, width: 3),
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
           ),
-          // Instructions
           Positioned(
             bottom: 40,
             left: 0,
@@ -144,8 +140,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             Container(
               color: Colors.black54,
               child: const Center(
-                child: CircularProgressIndicator(
-                    color: Colors.white),
+                child: CircularProgressIndicator(color: Colors.white),
               ),
             ),
         ],

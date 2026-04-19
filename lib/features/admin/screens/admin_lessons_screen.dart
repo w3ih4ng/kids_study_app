@@ -7,6 +7,7 @@ import '../../../models/lesson_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class AdminLessonsScreen extends StatefulWidget {
   const AdminLessonsScreen({super.key});
@@ -276,36 +277,51 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () async {
-                    if (_titleController.text.trim().isEmpty) return;
-                    if (lesson == null) {
-                      await LessonService.createLesson(
-                        title: _titleController.text.trim(),
-                        subject: _selectedSubject,
-                        difficulty: _selectedDifficulty,
-                        type: _selectedType,
-                        contentUrl: _urlController.text.trim(),
-                        description: _descController.text.trim(),
-                        ageLevel: _selectedAgeLevel,
-                      );
-                      if (context.mounted) Navigator.pop(context);
-                      _load();
-                      await NotificationService.notifyAll(
-                        title: '📚 New Lesson Available!',
-                        body: '${_titleController.text.trim()} has been added. Check it out!',
-                      );
-                    } else {
-                      await LessonService.updateLesson(lesson.id, {
-                        'title': _titleController.text.trim(),
-                        'subject': _selectedSubject,
-                        'difficulty': _selectedDifficulty,
-                        'type': _selectedType,
-                        'content_url': _urlController.text.trim(),
-                        'description': _descController.text.trim(),
-                        'age_level': _selectedAgeLevel,
-                      });
+                    if (_titleController.text.trim().isEmpty) {
+                      AppSnackbar.warning(context, 'Please enter a lesson title.');
+                      return;
                     }
-                    if (context.mounted) Navigator.pop(context);
-                    _load();
+                    try {
+                      if (lesson == null) {
+                        await LessonService.createLesson(
+                          title: _titleController.text.trim(),
+                          subject: _selectedSubject,
+                          difficulty: _selectedDifficulty,
+                          type: _selectedType,
+                          contentUrl: _urlController.text.trim(),
+                          description: _descController.text.trim(),
+                          ageLevel: _selectedAgeLevel,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        await NotificationService.notifyAll(
+                          title: '📚 New Lesson Available!',
+                          body: '${_titleController.text.trim()} has been added!',
+                        );
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Lesson created successfully!');
+                        }
+                      } else {
+                        await LessonService.updateLesson(lesson.id, {
+                          'title': _titleController.text.trim(),
+                          'subject': _selectedSubject,
+                          'difficulty': _selectedDifficulty,
+                          'type': _selectedType,
+                          'content_url': _urlController.text.trim(),
+                          'description': _descController.text.trim(),
+                          'age_level': _selectedAgeLevel,
+                        });
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Lesson updated successfully!');
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        AppSnackbar.error(context, 'Failed: ${e.toString()}');
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
@@ -327,7 +343,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete Lesson'),
-        content: Text('Delete "${lesson.title}"?'),
+        content: Text('Delete "${lesson.title}"? This cannot be undone.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -340,8 +356,17 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
       ),
     );
     if (confirmed == true) {
-      await LessonService.deleteLesson(lesson.id);
-      _load();
+      try {
+        await LessonService.deleteLesson(lesson.id);
+        _load();
+        if (mounted) {
+          AppSnackbar.success(context, '"${lesson.title}" deleted.');
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackbar.error(context, 'Failed to delete: ${e.toString()}');
+        }
+      }
     }
   }
 

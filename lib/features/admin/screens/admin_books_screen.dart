@@ -8,6 +8,7 @@ import '../../../core/services/comic_service.dart';
 import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../models/comic_model.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class AdminBooksScreen extends StatefulWidget {
   const AdminBooksScreen({super.key});
@@ -384,43 +385,50 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                       ? null
                       : () async {
                     if (_titleController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                              Text('Please enter a title')));
+                      AppSnackbar.warning(context, 'Please enter a book title.');
                       return;
                     }
-                    if (comic == null) {
-                      await ComicService.createComic(
-                        title: _titleController.text.trim(),
-                        author:
-                        _authorController.text.trim().isEmpty
-                            ? null
-                            : _authorController.text.trim(),
-                        description:
-                        _descController.text.trim().isEmpty
-                            ? null
-                            : _descController.text.trim(),
-                        coverUrl: _coverUrl,
-                        pdfUrl: _pdfUrl,
-                      );
-                    } else {
-                      await ComicService.updateComic(comic.id, {
-                        'title': _titleController.text.trim(),
-                        'author':
-                        _authorController.text.trim().isEmpty
-                            ? null
-                            : _authorController.text.trim(),
-                        'description':
-                        _descController.text.trim().isEmpty
-                            ? null
-                            : _descController.text.trim(),
-                        'cover_url': _coverUrl,
-                        'pdf_url': _pdfUrl,
-                      });
+                    try {
+                      if (comic == null) {
+                        await ComicService.createComic(
+                          title: _titleController.text.trim(),
+                          author: _authorController.text.trim().isEmpty
+                              ? null
+                              : _authorController.text.trim(),
+                          description: _descController.text.trim().isEmpty
+                              ? null
+                              : _descController.text.trim(),
+                          coverUrl: _coverUrl,
+                          pdfUrl: _pdfUrl,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Book added successfully!');
+                        }
+                      } else {
+                        await ComicService.updateComic(comic.id, {
+                          'title': _titleController.text.trim(),
+                          'author': _authorController.text.trim().isEmpty
+                              ? null
+                              : _authorController.text.trim(),
+                          'description': _descController.text.trim().isEmpty
+                              ? null
+                              : _descController.text.trim(),
+                          'cover_url': _coverUrl,
+                          'pdf_url': _pdfUrl,
+                        });
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Book updated successfully!');
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        AppSnackbar.error(context, 'Failed: ${e.toString()}');
+                      }
                     }
-                    if (context.mounted) Navigator.pop(context);
-                    _load();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
@@ -443,7 +451,7 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete Book'),
-        content: Text('Delete "${comic.title}"?'),
+        content: Text('Delete "${comic.title}"? This cannot be undone.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -456,8 +464,17 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
       ),
     );
     if (confirmed == true) {
-      await ComicService.deleteComic(comic.id);
-      _load();
+      try {
+        await ComicService.deleteComic(comic.id);
+        _load();
+        if (mounted) {
+          AppSnackbar.success(context, '"${comic.title}" deleted.');
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackbar.error(context, 'Failed to delete: ${e.toString()}');
+        }
+      }
     }
   }
 

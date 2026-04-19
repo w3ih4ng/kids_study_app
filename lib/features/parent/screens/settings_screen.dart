@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -21,7 +22,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  // ── Change password ────────────────────────────────────────────────────
   Future<void> _changePassword() async {
     _newPasswordController.clear();
     final confirmed = await showDialog<bool>(
@@ -46,23 +46,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-    if (confirmed == true && _newPasswordController.text.trim().isNotEmpty) {
+    if (confirmed == true) {
+      if (_newPasswordController.text.trim().isEmpty) {
+        AppSnackbar.warning(context, 'Please enter a new password.');
+        return;
+      }
       try {
         await AuthService.updatePassword(_newPasswordController.text.trim());
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Password updated!')));
-        }
+        if (mounted) AppSnackbar.success(context, 'Password updated successfully!');
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(e.toString())));
-        }
+        if (mounted) AppSnackbar.error(context, 'Failed to update password: ${e.toString()}');
       }
     }
   }
 
-  // ── Change PIN ─────────────────────────────────────────────────────────
   Future<void> _changePin() async {
     _pinController.clear();
     final confirmed = await showDialog<bool>(
@@ -95,10 +92,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     if (confirmed == true) {
-      await ChildService.updatePin(_pinController.text);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PIN updated successfully!')));
+      if (_pinController.text.length != 4) {
+        AppSnackbar.warning(context, 'PIN must be exactly 4 digits.');
+        return;
+      }
+      try {
+        await ChildService.updatePin(_pinController.text);
+        if (mounted) AppSnackbar.success(context, 'PIN updated successfully!');
+      } catch (e) {
+        if (mounted) AppSnackbar.error(context, 'Failed to update PIN. Try again.');
       }
     }
   }
@@ -114,7 +116,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Account Details ──────────────────────────────────────────
             _sectionHeader(Icons.person, 'Account Details', AppTheme.secondary),
             const SizedBox(height: 12),
             Card(
@@ -123,15 +124,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.email,
-                        color: AppTheme.textSecondary),
+                    leading: const Icon(Icons.email, color: AppTheme.textSecondary),
                     title: const Text('Email'),
                     subtitle: Text(email),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.lock,
-                        color: AppTheme.textSecondary),
+                    leading: const Icon(Icons.lock, color: AppTheme.textSecondary),
                     title: const Text('Password'),
                     subtitle: const Text('••••••••'),
                     trailing: TextButton(
@@ -142,21 +141,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 32),
-
-            // ── Security ─────────────────────────────────────────────────
             _sectionHeader(Icons.lock, 'Security', AppTheme.petsColor),
             const SizedBox(height: 12),
             Card(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               child: ListTile(
-                leading:
-                const Icon(Icons.pin, color: AppTheme.textSecondary),
+                leading: const Icon(Icons.pin, color: AppTheme.textSecondary),
                 title: const Text('Parent PIN'),
-                subtitle:
-                const Text('4-digit PIN to access parent dashboard'),
+                subtitle: const Text('4-digit PIN to access parent dashboard'),
                 trailing: TextButton(
                   onPressed: _changePin,
                   child: const Text('Change'),

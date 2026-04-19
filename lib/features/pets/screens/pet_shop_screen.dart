@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/child_provider.dart';
-import '../../../core/services/child_service.dart';
 import '../../../core/services/pet_service.dart';
 import '../../../core/widgets/animated_pet_widget.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../models/child_model.dart';
@@ -48,25 +48,18 @@ class _PetShopScreenState extends State<PetShopScreen>
   Future<void> _buyPet(PetModel pet) async {
     final child = context.read<ChildProvider>().activeChild!;
 
-    // Check if already owned
     final owned = await PetService.childOwnsPet(child.id, pet.id);
     if (owned) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You already own this pet!')));
+      AppSnackbar.info(context, 'You already own ${pet.name}!');
       return;
     }
 
-    // Check coins
     if (child.coins < pet.price) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Not enough coins! Need ${pet.price - child.coins} more coins.')),
-      );
+      AppSnackbar.warning(context,
+          'Not enough coins! Need ${pet.price - child.coins} more coins.');
       return;
     }
 
-    // Confirm purchase
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -94,29 +87,31 @@ class _PetShopScreenState extends State<PetShopScreen>
 
     if (confirmed != true) return;
 
-    await PetService.buyPet(
-      childId: child.id,
-      petId: pet.id,
-      price: pet.price,
-    );
-
-    // Update coins in provider
-    final updatedChild = ChildModel(
-      id: child.id,
-      parentId: child.parentId,
-      nickname: child.nickname,
-      avatarUrl: child.avatarUrl,
-      coins: child.coins - pet.price,
-      activePetId: child.activePetId,
-    );
-    if (mounted) {
-      context.read<ChildProvider>().setActiveChild(updatedChild);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${pet.name} is now yours! 🎉')),
+    try {
+      await PetService.buyPet(
+        childId: child.id,
+        petId: pet.id,
+        price: pet.price,
       );
-      _load();
-      // Switch to My Pets tab
-      _tabController.animateTo(1);
+
+      final updatedChild = ChildModel(
+        id: child.id,
+        parentId: child.parentId,
+        nickname: child.nickname,
+        avatarUrl: child.avatarUrl,
+        coins: child.coins - pet.price,
+        activePetId: child.activePetId,
+      );
+      if (mounted) {
+        context.read<ChildProvider>().setActiveChild(updatedChild);
+        AppSnackbar.success(context, '${pet.name} is now yours! 🎉');
+        _load();
+        _tabController.animateTo(1);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackbar.error(context, 'Purchase failed. Please try again.');
+      }
     }
   }
 
@@ -142,10 +137,7 @@ class _PetShopScreenState extends State<PetShopScreen>
               ? const LoadingWidget()
               : TabBarView(
             controller: _tabController,
-            children: [
-              _buildShop(),
-              _buildMyPets(),
-            ],
+            children: [_buildShop(), _buildMyPets()],
           ),
         ),
       ],
@@ -155,9 +147,7 @@ class _PetShopScreenState extends State<PetShopScreen>
   Widget _buildShop() {
     if (_shopPets.isEmpty) {
       return const EmptyStateWidget(
-        message: 'No pets in the shop yet.',
-        icon: Icons.pets,
-      );
+          message: 'No pets in the shop yet.', icon: Icons.pets);
     }
 
     final child = context.watch<ChildProvider>().activeChild;
@@ -173,8 +163,7 @@ class _PetShopScreenState extends State<PetShopScreen>
       itemCount: _shopPets.length,
       itemBuilder: (_, i) {
         final pet = _shopPets[i];
-        final owned =
-        _myPets.any((mp) => mp.petId == pet.id);
+        final owned = _myPets.any((mp) => mp.petId == pet.id);
         final canAfford = (child?.coins ?? 0) >= pet.price;
 
         return GestureDetector(
@@ -197,13 +186,11 @@ class _PetShopScreenState extends State<PetShopScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AnimatedPetWidget(
-                    imageUrl: pet.imageUrl, size: 80),
+                AnimatedPetWidget(imageUrl: pet.imageUrl, size: 80),
                 const SizedBox(height: 8),
                 Text(pet.name,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16)),
+                        fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
                 if (owned)
                   Container(
@@ -233,9 +220,8 @@ class _PetShopScreenState extends State<PetShopScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.monetization_on,
-                            color: canAfford
-                                ? AppTheme.accent
-                                : AppTheme.danger,
+                            color:
+                            canAfford ? AppTheme.accent : AppTheme.danger,
                             size: 14),
                         const SizedBox(width: 4),
                         Text('${pet.price}',
@@ -259,9 +245,8 @@ class _PetShopScreenState extends State<PetShopScreen>
   Widget _buildMyPets() {
     if (_myPets.isEmpty) {
       return const EmptyStateWidget(
-        message: 'You don\'t have any pets yet.\nVisit the shop!',
-        icon: Icons.pets,
-      );
+          message: 'You don\'t have any pets yet.\nVisit the shop!',
+          icon: Icons.pets);
     }
 
     final child = context.watch<ChildProvider>().activeChild;
@@ -301,8 +286,7 @@ class _PetShopScreenState extends State<PetShopScreen>
                         children: [
                           Text(pet.name,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16)),
+                                  fontWeight: FontWeight.bold, fontSize: 16)),
                           if (isActive) ...[
                             const SizedBox(width: 8),
                             Container(
@@ -318,15 +302,14 @@ class _PetShopScreenState extends State<PetShopScreen>
                                       color: AppTheme.petsColor,
                                       fontWeight: FontWeight.bold)),
                             ),
-                          ]
+                          ],
                         ],
                       ),
                       if (pet.description != null) ...[
                         const SizedBox(height: 4),
                         Text(pet.description!,
                             style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 13)),
+                                color: AppTheme.textSecondary, fontSize: 13)),
                       ],
                       const SizedBox(height: 4),
                       Text(
@@ -347,23 +330,32 @@ class _PetShopScreenState extends State<PetShopScreen>
                 if (!isActive)
                   ElevatedButton(
                     onPressed: () async {
-                      await PetService.setActivePet(
-                        childId: child!.id,
-                        petId: pet.id,
-                      );
-                      final updatedChild = ChildModel(
-                        id: child.id,
-                        parentId: child.parentId,
-                        nickname: child.nickname,
-                        avatarUrl: child.avatarUrl,
-                        coins: child.coins,
-                        activePetId: pet.id,
-                      );
-                      if (mounted) {
-                        context
-                            .read<ChildProvider>()
-                            .setActiveChild(updatedChild);
-                        _load();
+                      try {
+                        await PetService.setActivePet(
+                          childId: child!.id,
+                          petId: pet.id,
+                        );
+                        final updatedChild = ChildModel(
+                          id: child.id,
+                          parentId: child.parentId,
+                          nickname: child.nickname,
+                          avatarUrl: child.avatarUrl,
+                          coins: child.coins,
+                          activePetId: pet.id,
+                        );
+                        if (mounted) {
+                          context
+                              .read<ChildProvider>()
+                              .setActiveChild(updatedChild);
+                          AppSnackbar.success(context,
+                              '${pet.name} is now your active companion!');
+                          _load();
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          AppSnackbar.error(
+                              context, 'Failed to set active pet.');
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -374,8 +366,8 @@ class _PetShopScreenState extends State<PetShopScreen>
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Set Active',
-                        style: TextStyle(fontSize: 12)),
+                    child:
+                    const Text('Set Active', style: TextStyle(fontSize: 12)),
                   ),
               ],
             ),

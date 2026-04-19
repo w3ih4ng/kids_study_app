@@ -9,6 +9,7 @@ import '../../../core/widgets/animated_pet_widget.dart';
 import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../models/pet_model.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class AdminPetsScreen extends StatefulWidget {
   const AdminPetsScreen({super.key});
@@ -387,26 +388,43 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
-                    if (_nameController.text.trim().isEmpty) return;
-                    if (pet == null) {
-                      await PetService.createPet(
-                        name: _nameController.text.trim(),
-                        price: int.tryParse(_priceController.text) ?? 100,
-                        imageUrl: _imageUrl,
-                        description: _descController.text.trim(),
-                        soundUrl: _soundUrl, // add this
-                      );
-                    } else {
-                      await PetService.updatePet(pet.id, {
-                        'name': _nameController.text.trim(),
-                        'price': int.tryParse(_priceController.text) ?? 100,
-                        'image_url': _imageUrl,
-                        'description': _descController.text.trim(),
-                        'sound_url': _soundUrl, // add this
-                      });
+                    if (_nameController.text.trim().isEmpty) {
+                      AppSnackbar.warning(context, 'Please enter a pet name.');
+                      return;
                     }
-                    if (context.mounted) Navigator.pop(context);
-                    _load();
+                    try {
+                      if (pet == null) {
+                        await PetService.createPet(
+                          name: _nameController.text.trim(),
+                          price: int.tryParse(_priceController.text) ?? 100,
+                          imageUrl: _imageUrl,
+                          description: _descController.text.trim(),
+                          soundUrl: _soundUrl,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Pet added to the shop!');
+                        }
+                      } else {
+                        await PetService.updatePet(pet.id, {
+                          'name': _nameController.text.trim(),
+                          'price': int.tryParse(_priceController.text) ?? 100,
+                          'image_url': _imageUrl,
+                          'description': _descController.text.trim(),
+                          'sound_url': _soundUrl,
+                        });
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Pet updated successfully!');
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        AppSnackbar.error(context, 'Failed: ${e.toString()}');
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
@@ -429,7 +447,8 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete Pet'),
-        content: Text('Delete "${pet.name}"?'),
+        content: Text(
+            'Remove "${pet.name}" from the shop? Children who own this pet will keep it.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -442,8 +461,17 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
       ),
     );
     if (confirmed == true) {
-      await PetService.deletePet(pet.id);
-      _load();
+      try {
+        await PetService.deletePet(pet.id);
+        _load();
+        if (mounted) {
+          AppSnackbar.success(context, '"${pet.name}" removed from shop.');
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackbar.error(context, 'Failed to delete: ${e.toString()}');
+        }
+      }
     }
   }
 

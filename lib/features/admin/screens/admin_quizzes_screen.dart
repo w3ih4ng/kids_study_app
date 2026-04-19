@@ -10,6 +10,7 @@ import '../../../models/lesson_model.dart';
 import '../../../models/quiz_model.dart';
 import 'admin_quiz_questions_screen.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class AdminQuizzesScreen extends StatefulWidget {
   const AdminQuizzesScreen({super.key});
@@ -134,7 +135,7 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                   onChanged: (v) => setModalState(() => _selectedAgeLevel = v!),
                 ),
                 const SizedBox(height: 12),
-// Thumbnail upload
+                // Thumbnail upload
                 const Text('Thumbnail (optional)',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 6),
@@ -183,34 +184,49 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
-                    if (_titleController.text.trim().isEmpty) return;
-                    if (quiz == null) {
-                      await QuizService.createQuiz(
-                        title: _titleController.text.trim(),
-                        subject: _selectedSubject,
-                        lessonId: _selectedLessonId,
-                        coinValue: int.tryParse(_coinController.text) ?? 100,
-                        ageLevel: _selectedAgeLevel,
-                        thumbnailUrl: _thumbnailUrl,
-                      );
-                      if (context.mounted) Navigator.pop(context);
-                      _load();
-                      await NotificationService.notifyAll(
-                        title: '📚 New Lesson Available!',
-                        body: '${_titleController.text.trim()} has been added. Check it out!',
-                      );
-                    } else {
-                      await QuizService.updateQuiz(quiz.id, {
-                        'title': _titleController.text.trim(),
-                        'subject': _selectedSubject,
-                        'lesson_id': _selectedLessonId,
-                        'coin_value': int.tryParse(_coinController.text) ?? 100,
-                        'age_level': _selectedAgeLevel,
-                        'thumbnail_url': _thumbnailUrl,
-                      });
+                    if (_titleController.text.trim().isEmpty) {
+                      AppSnackbar.warning(context, 'Please enter a quiz title.');
+                      return;
                     }
-                    if (context.mounted) Navigator.pop(context);
-                    _load();
+                    try {
+                      if (quiz == null) {
+                        await QuizService.createQuiz(
+                          title: _titleController.text.trim(),
+                          subject: _selectedSubject,
+                          lessonId: _selectedLessonId,
+                          coinValue: int.tryParse(_coinController.text) ?? 100,
+                          ageLevel: _selectedAgeLevel,
+                          thumbnailUrl: _thumbnailUrl,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        await NotificationService.notifyAll(
+                          title: '🎯 New Quiz Available!',
+                          body: '${_titleController.text.trim()} is ready!',
+                        );
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Quiz created successfully!');
+                        }
+                      } else {
+                        await QuizService.updateQuiz(quiz.id, {
+                          'title': _titleController.text.trim(),
+                          'subject': _selectedSubject,
+                          'lesson_id': _selectedLessonId,
+                          'coin_value': int.tryParse(_coinController.text) ?? 100,
+                          'age_level': _selectedAgeLevel,
+                          'thumbnail_url': _thumbnailUrl,
+                        });
+                        if (context.mounted) Navigator.pop(context);
+                        _load();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Quiz updated successfully!');
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        AppSnackbar.error(context, 'Failed: ${e.toString()}');
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
@@ -232,7 +248,7 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete Quiz'),
-        content: Text('Delete "${quiz.title}"?'),
+        content: Text('Delete "${quiz.title}"? All questions will also be deleted.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -245,8 +261,17 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
       ),
     );
     if (confirmed == true) {
-      await QuizService.deleteQuiz(quiz.id);
-      _load();
+      try {
+        await QuizService.deleteQuiz(quiz.id);
+        _load();
+        if (mounted) {
+          AppSnackbar.success(context, '"${quiz.title}" deleted.');
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackbar.error(context, 'Failed to delete: ${e.toString()}');
+        }
+      }
     }
   }
 

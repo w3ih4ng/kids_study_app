@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/child_provider.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import 'child_dashboard_screen.dart';
 
 class CreateChildScreen extends StatefulWidget {
@@ -18,8 +20,7 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
 
   Future<void> _create() async {
     if (_nicknameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a nickname')));
+      AppSnackbar.warning(context, 'Please enter a nickname for your child.');
       return;
     }
     setState(() => _isLoading = true);
@@ -31,23 +32,19 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
         context.read<ChildProvider>().setActiveChild(newChild);
 
         if (widget.isFirstTime) {
-          // First time — clear stack and go to dashboard
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const ChildDashboardScreen()),
                 (route) => false,
           );
         } else {
-          // From settings — just go back
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Child profile created!')));
+          AppSnackbar.success(context, 'Child profile created successfully!');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+        AppSnackbar.error(context, 'Failed to create profile. Please try again.');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -57,7 +54,6 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Show app bar with back button only when not first time
       appBar: widget.isFirstTime
           ? null
           : AppBar(title: const Text('Add Child Profile')),
@@ -68,15 +64,14 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.child_care, size: 72, color: Colors.indigo),
+              Icon(Icons.child_care, size: 72, color: AppTheme.primary),
               const SizedBox(height: 16),
               Text(
                 widget.isFirstTime
                     ? "Let's set up your first child profile!"
                     : 'Add a new child profile',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -97,14 +92,13 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _create,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
+                  backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Continue',
-                    style: TextStyle(fontSize: 16)),
+                    : const Text('Continue', style: TextStyle(fontSize: 16)),
               ),
             ],
           ),

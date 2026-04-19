@@ -4,6 +4,7 @@ import '../../../core/services/quiz_image_service.dart';
 import '../../../core/services/quiz_service.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../models/quiz_model.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class AdminQuizQuestionsScreen extends StatefulWidget {
   final QuizModel quiz;
@@ -391,53 +392,60 @@ class _AdminQuizQuestionsScreenState
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // ── Save button ───────────────────────────
                 ElevatedButton(
                   onPressed: () async {
-                    // Validate at least question text or image
                     if (_questionController.text.trim().isEmpty &&
                         _questionImageUrl == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Please enter a question or add an image')),
-                      );
+                      AppSnackbar.warning(context,
+                          'Please enter a question or add an image.');
                       return;
                     }
-
-                    if (question == null) {
-                      await QuizService.addQuestion(
-                        quizId: _quiz.id,
-                        question: _questionController.text.trim(),
-                        questionImageUrl: _questionImageUrl,
-                        optionA: _optionAController.text.trim(),
-                        optionAImageUrl: _optionAImageUrl,
-                        optionB: _optionBController.text.trim(),
-                        optionBImageUrl: _optionBImageUrl,
-                        optionC: _optionCController.text.trim(),
-                        optionCImageUrl: _optionCImageUrl,
-                        optionD: _optionDController.text.trim(),
-                        optionDImageUrl: _optionDImageUrl,
-                        correctAnswer: _correctAnswer,
-                      );
-                    } else {
-                      await QuizService.updateQuestion(question.id, {
-                        'question': _questionController.text.trim(),
-                        'question_image_url': _questionImageUrl,
-                        'option_a': _optionAController.text.trim(),
-                        'option_a_image_url': _optionAImageUrl,
-                        'option_b': _optionBController.text.trim(),
-                        'option_b_image_url': _optionBImageUrl,
-                        'option_c': _optionCController.text.trim(),
-                        'option_c_image_url': _optionCImageUrl,
-                        'option_d': _optionDController.text.trim(),
-                        'option_d_image_url': _optionDImageUrl,
-                        'correct_answer': _correctAnswer,
-                      });
+                    try {
+                      if (question == null) {
+                        await QuizService.addQuestion(
+                          quizId: _quiz.id,
+                          question: _questionController.text.trim(),
+                          questionImageUrl: _questionImageUrl,
+                          optionA: _optionAController.text.trim(),
+                          optionAImageUrl: _optionAImageUrl,
+                          optionB: _optionBController.text.trim(),
+                          optionBImageUrl: _optionBImageUrl,
+                          optionC: _optionCController.text.trim(),
+                          optionCImageUrl: _optionCImageUrl,
+                          optionD: _optionDController.text.trim(),
+                          optionDImageUrl: _optionDImageUrl,
+                          correctAnswer: _correctAnswer,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        _reload();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Question added!');
+                        }
+                      } else {
+                        await QuizService.updateQuestion(question.id, {
+                          'question': _questionController.text.trim(),
+                          'question_image_url': _questionImageUrl,
+                          'option_a': _optionAController.text.trim(),
+                          'option_a_image_url': _optionAImageUrl,
+                          'option_b': _optionBController.text.trim(),
+                          'option_b_image_url': _optionBImageUrl,
+                          'option_c': _optionCController.text.trim(),
+                          'option_c_image_url': _optionCImageUrl,
+                          'option_d': _optionDController.text.trim(),
+                          'option_d_image_url': _optionDImageUrl,
+                          'correct_answer': _correctAnswer,
+                        });
+                        if (context.mounted) Navigator.pop(context);
+                        _reload();
+                        if (context.mounted) {
+                          AppSnackbar.success(context, 'Question updated!');
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        AppSnackbar.error(context, 'Failed: ${e.toString()}');
+                      }
                     }
-                    if (context.mounted) Navigator.pop(context);
-                    _reload();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
@@ -557,9 +565,17 @@ class _AdminQuizQuestionsScreenState
                         icon: const Icon(Icons.delete,
                             color: AppTheme.danger, size: 20),
                         onPressed: () async {
-                          await QuizService.deleteQuestion(
-                              q.id);
-                          _reload();
+                          try {
+                            await QuizService.deleteQuestion(q.id);
+                            _reload();
+                            if (mounted) {
+                              AppSnackbar.success(context, 'Question deleted.');
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              AppSnackbar.error(context, 'Failed to delete question.');
+                            }
+                          }
                         },
                       ),
                     ],

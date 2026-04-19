@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/child_provider.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/child_avatar.dart';
 import '../../auth/screens/pin_screen.dart';
 import '../../auth/screens/parent_dashboard_screen.dart';
@@ -64,7 +65,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
       ),
     );
 
-    if (source == null) return; // user dismissed
+    if (source == null) return;
 
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -90,8 +91,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
           .from('avatars')
           .getPublicUrl(fileName);
 
-      // Add timestamp to bust the cache
-      final urlWithCacheBust = '$url?t=${DateTime.now().millisecondsSinceEpoch}';
+      final urlWithCacheBust =
+          '$url?t=${DateTime.now().millisecondsSinceEpoch}';
 
       await Supabase.instance.client
           .from('children')
@@ -101,16 +102,12 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
       final updated = children.firstWhere((c) => c.id == child.id);
       if (mounted) {
         context.read<ChildProvider>().setActiveChild(updated);
-        setState(() {}); // force UI rebuild
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile picture updated!')),
-        );
+        setState(() {});
+        AppSnackbar.success(context, 'Profile picture updated!');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload: $e')),
-        );
+        AppSnackbar.error(context, 'Failed to upload picture. Please try again.');
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -134,7 +131,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             correctPin: pin,
             onSuccess: () => Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (_) => const ParentDashboardScreen()),
+              MaterialPageRoute(
+                  builder: (_) => const ParentDashboardScreen()),
                   (route) => false,
             ),
           ),
@@ -143,9 +141,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load PIN. Try again.')),
-        );
+        AppSnackbar.error(context, 'Failed to load PIN. Please try again.');
       }
     }
   }
@@ -155,15 +151,12 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
     final child = context.watch<ChildProvider>().activeChild;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-      ),
+      appBar: AppBar(title: const Text('My Profile')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             const SizedBox(height: 24),
-            // Avatar with camera button
             Stack(
               alignment: Alignment.bottomRight,
               children: [
@@ -193,14 +186,11 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            // Child name
             Text(
               child?.nickname ?? '',
-              style: const TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            // Coins card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -233,14 +223,14 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               ),
             ),
             const SizedBox(height: 16),
-// Child code
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppTheme.primary.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+                border:
+                Border.all(color: AppTheme.primary.withOpacity(0.2)),
               ),
               child: Column(
                 children: [
@@ -268,7 +258,6 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               ),
             ),
             const Spacer(),
-            // Parent Dashboard button at the bottom
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
