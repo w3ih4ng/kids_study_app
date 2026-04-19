@@ -6,10 +6,10 @@ import 'core/constants/supabase_constants.dart';
 import 'core/providers/child_provider.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/child_service.dart';
-import 'features/auth/screens/login_screen.dart';
-import 'features/auth/screens/create_child_screen.dart';
-import 'features/auth/screens/child_dashboard_screen.dart';
-import 'features/admin/screens/admin_screen.dart';
+import 'features/alyssa/auth/screens/login_screen.dart';
+import 'features/alyssa/auth/screens/create_child_screen.dart';
+import 'features/alyssa/auth/screens/child_dashboard_screen.dart';
+import 'features/cheesean/admin/admin_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/services/notification_service.dart';
 
