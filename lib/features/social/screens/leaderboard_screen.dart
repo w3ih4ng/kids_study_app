@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/child_provider.dart';
@@ -49,22 +50,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final child = context.read<ChildProvider>().activeChild!;
 
     final all = await LeaderboardService.getLeaderboard();
-    final friends = await LeaderboardService
-        .getFriendsLeaderboard(childId: child.id);
-    final math = await LeaderboardService
-        .getLeaderboardBySubject(subject: 'Math');
-    final english = await LeaderboardService
-        .getLeaderboardBySubject(subject: 'English');
-    final friendsMath = await LeaderboardService
-        .getFriendsLeaderboardBySubject(
+    final friends =
+    await LeaderboardService.getFriendsLeaderboard(childId: child.id);
+    final math =
+    await LeaderboardService.getLeaderboardBySubject(subject: 'Math');
+    final english =
+    await LeaderboardService.getLeaderboardBySubject(subject: 'English');
+    final friendsMath =
+    await LeaderboardService.getFriendsLeaderboardBySubject(
         childId: child.id, subject: 'Math');
-    final friendsEnglish = await LeaderboardService
-        .getFriendsLeaderboardBySubject(
+    final friendsEnglish =
+    await LeaderboardService.getFriendsLeaderboardBySubject(
         childId: child.id, subject: 'English');
-    final stats =
-    await LeaderboardService.getChildStats(child.id);
-    final rank =
-    await LeaderboardService.getChildRank(child.id);
+    final stats = await LeaderboardService.getChildStats(child.id);
+    final rank = await LeaderboardService.getChildRank(child.id);
 
     if (mounted) {
       setState(() {
@@ -84,18 +83,37 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   // Get current list based on tab + filter
   List<LeaderboardModel> get _currentAllList {
     switch (_allSubjectFilter) {
-      case 'Math': return _allMath;
-      case 'English': return _allEnglish;
-      default: return _allPlayers;
+      case 'Math':
+        return _allMath;
+      case 'English':
+        return _allEnglish;
+      default:
+        return _allPlayers;
     }
   }
 
   List<LeaderboardModel> get _currentFriendsList {
     switch (_friendsSubjectFilter) {
-      case 'Math': return _friendsMath;
-      case 'English': return _friendsEnglish;
-      default: return _friendsAll;
+      case 'Math':
+        return _friendsMath;
+      case 'English':
+        return _friendsEnglish;
+      default:
+        return _friendsAll;
     }
+  }
+
+  // ── NEW: show limited profile bottom sheet ──────────────
+  void _showLimitedProfile(LeaderboardModel entry) {
+    final info = entry.childInfo;
+    if (info == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => LimitedProfileSheet(entry: entry),
+    );
   }
 
   @override
@@ -142,7 +160,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  // ── Filtered tab with subject chips ──────────────────
+  // ── Filtered tab with subject chips ──────────────────────
   Widget _buildFilteredTab({
     required List<LeaderboardModel> list,
     required String selectedFilter,
@@ -153,8 +171,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       children: [
         // Subject filter chips
         Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: 16, vertical: 10),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           color: AppTheme.primary.withOpacity(0.04),
           child: Row(
             children: ['All', 'Math', 'English'].map((subject) {
@@ -187,9 +205,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     child: Text(
                       subject,
                       style: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : color,
+                        color: isSelected ? Colors.white : color,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -207,13 +223,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
-                mainAxisAlignment:
-                MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                      Icons.leaderboard_outlined,
-                      size: 72,
-                      color: AppTheme.textSecondary),
+                  const Icon(Icons.leaderboard_outlined,
+                      size: 72, color: AppTheme.textSecondary),
                   const SizedBox(height: 16),
                   Text(
                     emptyMessage,
@@ -255,87 +268,88 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               width: isMe ? 2 : 1,
             ),
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 4),
-            leading: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 36,
-                  child: Center(
-                    child: rank <= 3
-                        ? Text(_rankEmoji(rank),
-                        style:
-                        const TextStyle(fontSize: 22))
-                        : Text('#$rank',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: _rankColor(rank))),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ChildAvatar(
-                  nickname:
-                  entry.childInfo?.nickname ?? '?',
-                  avatarUrl: entry.childInfo?.avatarUrl,
-                  radius: 20,
-                ),
-              ],
-            ),
-            title: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    entry.childInfo?.nickname ?? 'Unknown',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isMe
-                          ? AppTheme.primary
-                          : AppTheme.textPrimary,
+          // ── Tap to view limited profile (non-self entries) ──
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: isMe ? null : () => _showLimitedProfile(entry),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 4),
+              leading: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 36,
+                    child: Center(
+                      child: rank <= 3
+                          ? Text(_rankEmoji(rank),
+                          style: const TextStyle(fontSize: 22))
+                          : Text('#$rank',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: _rankColor(rank))),
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                if (isMe) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color:
-                      AppTheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text('You',
-                        style: TextStyle(
-                            fontSize: 10,
-                            color: AppTheme.primary,
-                            fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  ChildAvatar(
+                    nickname: entry.childInfo?.nickname ?? '?',
+                    avatarUrl: entry.childInfo?.avatarUrl,
+                    radius: 20,
                   ),
                 ],
-              ],
-            ),
-            subtitle: Text(
-              '${entry.totalCorrect} correct · ${entry.totalCoins} coins',
-              style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.textSecondary),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _rankColor(rank).withOpacity(0.12),
-                borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                '${entry.score} pts',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: _rankColor(rank),
+              title: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      entry.childInfo?.nickname ?? 'Unknown',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isMe
+                            ? AppTheme.primary
+                            : AppTheme.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isMe) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text('You',
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ],
+              ),
+              subtitle: Text(
+                '${entry.totalCorrect} correct · ${entry.totalCoins} coins',
+                style: const TextStyle(
+                    fontSize: 11, color: AppTheme.textSecondary),
+              ),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _rankColor(rank).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${entry.score} pts',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: _rankColor(rank),
+                  ),
                 ),
               ),
             ),
@@ -377,16 +391,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             child: Row(
               children: [
                 Text(
-                  _myRank <= 3
-                      ? _rankEmoji(_myRank)
-                      : '#$_myRank',
+                  _myRank <= 3 ? _rankEmoji(_myRank) : '#$_myRank',
                   style: const TextStyle(fontSize: 52),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         _myRank == 1
@@ -400,8 +411,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       Text(
                         '${_myStats!.score} total points',
                         style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14),
+                            color: Colors.white70, fontSize: 14),
                       ),
                     ],
                   ),
@@ -435,8 +445,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           const SizedBox(height: 24),
 
           const Text('Score Breakdown',
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold)),
+              style:
+              TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           const Text(
             'Score = Coins + (Correct Answers × 10)',
@@ -456,8 +466,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
                 maxY: (_myStats!.score + 50).toDouble(),
-                barTouchData:
-                BarTouchData(enabled: false),
+                barTouchData: BarTouchData(enabled: false),
                 titlesData: FlTitlesData(
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -469,14 +478,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                           'Total'
                         ];
                         return Padding(
-                          padding:
-                          const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             labels[value.toInt()],
                             style: const TextStyle(
                                 fontSize: 11,
-                                color:
-                                AppTheme.textSecondary),
+                                color: AppTheme.textSecondary),
                             textAlign: TextAlign.center,
                           ),
                         );
@@ -484,29 +491,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     ),
                   ),
                   leftTitles: const AxisTitles(
-                      sideTitles:
-                      SideTitles(showTitles: false)),
+                      sideTitles: SideTitles(showTitles: false)),
                   topTitles: const AxisTitles(
-                      sideTitles:
-                      SideTitles(showTitles: false)),
+                      sideTitles: SideTitles(showTitles: false)),
                   rightTitles: const AxisTitles(
-                      sideTitles:
-                      SideTitles(showTitles: false)),
+                      sideTitles: SideTitles(showTitles: false)),
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 barGroups: [
-                  _barGroup(
-                      0,
-                      _myStats!.totalCoins.toDouble(),
+                  _barGroup(0, _myStats!.totalCoins.toDouble(),
                       AppTheme.accent),
                   _barGroup(
                       1,
-                      (_myStats!.totalCorrect * 10)
-                          .toDouble(),
+                      (_myStats!.totalCorrect * 10).toDouble(),
                       AppTheme.success),
-                  _barGroup(2, _myStats!.score.toDouble(),
-                      AppTheme.primary),
+                  _barGroup(
+                      2, _myStats!.score.toDouble(), AppTheme.primary),
                 ],
               ),
             ),
@@ -516,8 +517,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           if (_allPlayers.length >= 2) ...[
             const Text('Top 5 Comparison',
                 style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
+                    fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Container(
               height: 200,
@@ -536,8 +536,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildComparisonChart() {
-    final child =
-        context.read<ChildProvider>().activeChild;
+    final child = context.read<ChildProvider>().activeChild;
     final top = _allPlayers.take(5).toList();
 
     return BarChart(
@@ -550,8 +549,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               final entry = top[group.x];
               return BarTooltipItem(
                 '${entry.childInfo?.nickname ?? '?'}\n${entry.score} pts',
-                const TextStyle(
-                    color: Colors.white, fontSize: 11),
+                const TextStyle(color: Colors.white, fontSize: 11),
               );
             },
           ),
@@ -563,17 +561,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               getTitlesWidget: (value, _) {
                 final i = value.toInt();
                 if (i >= top.length) return const SizedBox();
-                final name =
-                    top[i].childInfo?.nickname ?? '?';
-                final short = name.length > 6
-                    ? '${name.substring(0, 6)}..'
-                    : name;
+                final name = top[i].childInfo?.nickname ?? '?';
+                final short =
+                name.length > 6 ? '${name.substring(0, 6)}..' : name;
                 return Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(short,
                       style: const TextStyle(
-                          fontSize: 10,
-                          color: AppTheme.textSecondary)),
+                          fontSize: 10, color: AppTheme.textSecondary)),
                 );
               },
             ),
@@ -599,8 +594,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  BarChartGroupData _barGroup(
-      int x, double y, Color color) {
+  BarChartGroupData _barGroup(int x, double y, Color color) {
     return BarChartGroupData(
       x: x,
       barRods: [
@@ -608,8 +602,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           toY: y,
           color: color,
           width: 32,
-          borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(6)),
+          borderRadius:
+          const BorderRadius.vertical(top: Radius.circular(6)),
         ),
       ],
     );
@@ -637,8 +631,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           Text(label,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 12)),
+                  color: AppTheme.textSecondary, fontSize: 12)),
         ],
       ),
     );
@@ -646,19 +639,216 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Color _rankColor(int rank) {
     switch (rank) {
-      case 1: return const Color(0xFFFFD700);
-      case 2: return const Color(0xFFC0C0C0);
-      case 3: return const Color(0xFFCD7F32);
-      default: return AppTheme.primary;
+      case 1:
+        return const Color(0xFFFFD700);
+      case 2:
+        return const Color(0xFFC0C0C0);
+      case 3:
+        return const Color(0xFFCD7F32);
+      default:
+        return AppTheme.primary;
     }
   }
 
   String _rankEmoji(int rank) {
     switch (rank) {
-      case 1: return '🥇';
-      case 2: return '🥈';
-      case 3: return '🥉';
-      default: return '#$rank';
+      case 1:
+        return '🥇';
+      case 2:
+        return '🥈';
+      case 3:
+        return '🥉';
+      default:
+        return '#$rank';
     }
+  }
+}
+
+// ── Limited profile bottom sheet ─────────────────────────
+/// Shown when tapping a leaderboard entry (non-self).
+/// Intentionally limited — only shows avatar, nickname, friend code
+/// (copyable), rank, and score. No full stats.
+class LimitedProfileSheet extends StatelessWidget {
+  final LeaderboardModel entry;
+
+  const LimitedProfileSheet({required this.entry});
+
+  void _copyCode(BuildContext context, String code) {
+    Clipboard.setData(ClipboardData(text: code));
+    Navigator.pop(context); // close sheet first
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text('Friend code "$code" copied!'),
+          ],
+        ),
+        backgroundColor: AppTheme.success,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape:
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  String _rankEmoji(int rank) {
+    switch (rank) {
+      case 1:
+        return '🥇';
+      case 2:
+        return '🥈';
+      case 3:
+        return '🥉';
+      default:
+        return '#$rank';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final info = entry.childInfo;
+    final nickname = info?.nickname ?? 'Unknown';
+    final code = info?.childCode ?? '';
+
+    // Approximate rank from score (sheet doesn't know list position,
+    // caller can pass rank explicitly — here we show score prominence)
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Avatar
+          ChildAvatar(
+            nickname: nickname,
+            avatarUrl: info?.avatarUrl,
+            radius: 44,
+          ),
+          const SizedBox(height: 12),
+
+          // Nickname
+          Text(
+            nickname,
+            style: const TextStyle(
+                fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+
+          // Score badge
+          Container(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '${entry.score} pts',
+              style: const TextStyle(
+                color: AppTheme.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Friend code row with copy button
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(16),
+              border:
+              Border.all(color: AppTheme.primary.withOpacity(0.2)),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'Friend Code',
+                  style: TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      code.isNotEmpty ? code : '--------',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 4,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    if (code.isNotEmpty) ...[
+                      const SizedBox(width: 10),
+                      Tooltip(
+                        message: 'Copy friend code',
+                        child: InkWell(
+                          onTap: () => _copyCode(context, code),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.copy_rounded,
+                              size: 18,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Use this code to send a friend request',
+                  style: TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 11),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Close button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppTheme.border),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Close',
+                  style: TextStyle(color: AppTheme.textSecondary)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
