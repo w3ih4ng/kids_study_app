@@ -243,7 +243,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.primary.withOpacity(0.1),
+                                        color: AppTheme.primary.withValues(alpha:0.1),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: const Text('Active',
@@ -394,16 +394,16 @@ class _DashboardCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha:0.3)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha:0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 26),

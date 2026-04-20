@@ -14,6 +14,7 @@ class BookDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(comic.title)),
       body: SingleChildScrollView(
@@ -39,22 +40,22 @@ class BookDetailScreen extends StatelessWidget {
                   if (comic.author != null) ...[
                     const SizedBox(height: 4),
                     Text('by ${comic.author}',
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary)),
+                        style: TextStyle(
+                            color: cs.onSurface.withValues(alpha:0.6))),
                   ],
                   if (comic.description != null) ...[
                     const SizedBox(height: 12),
                     Text(comic.description!,
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary,
+                        style: TextStyle(
+                            color: cs.onSurface.withValues(alpha:0.6),
                             height: 1.5)),
                   ],
                   const SizedBox(height: 24),
                   if (comic.pdfUrl == null)
-                    const Center(
+                    Center(
                       child: Text('No PDF available yet.',
                           style: TextStyle(
-                              color: AppTheme.textSecondary)),
+                              color: cs.onSurface.withValues(alpha:0.6))),
                     )
                   else
                     SizedBox(
@@ -102,15 +103,15 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
   final FlutterTts _tts = FlutterTts();
   bool _isSpeaking = false;
   bool _isLoading = true;
+  bool _disposed = false; // ← key flag
   String? _localPath;
   String _error = '';
   int _currentPage = 0;
   int _totalPages = 0;
   PDFViewController? _pdfViewController;
 
-  // Text extraction
   spdf.PdfDocument? _pdfDoc;
-  Map<int, String> _pageTexts = {};
+  final Map<int, String> _pageTexts = {};
   bool _isExtracting = false;
 
   @override
@@ -125,13 +126,12 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
       final response =
       await http.get(Uri.parse(widget.comic.pdfUrl!));
       final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/book_${widget.comic.id}.pdf');
+      final file =
+      File('${dir.path}/book_${widget.comic.id}.pdf');
       await file.writeAsBytes(response.bodyBytes);
-
-      // Load PDF for text extraction
-      _pdfDoc = spdf.PdfDocument(inputBytes: response.bodyBytes);
-
-      if (mounted) {
+      _pdfDoc =
+          spdf.PdfDocument(inputBytes: response.bodyBytes);
+      if (!_disposed && mounted) {
         setState(() {
           _localPath = file.path;
           _isLoading = false;
@@ -139,7 +139,7 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
         _extractPageText(0);
       }
     } catch (e) {
-      if (mounted) {
+      if (!_disposed && mounted) {
         setState(() {
           _error = 'Failed to load PDF: $e';
           _isLoading = false;
@@ -149,16 +149,16 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
   }
 
   Future<void> _extractPageText(int pageIndex) async {
+    if (_disposed) return;
     if (_pdfDoc == null) return;
     if (_pageTexts.containsKey(pageIndex)) return;
-
     try {
       final extractor = spdf.PdfTextExtractor(_pdfDoc!);
       final text = extractor.extractText(
         startPageIndex: pageIndex,
         endPageIndex: pageIndex,
       );
-      if (mounted) {
+      if (!_disposed && mounted) {
         setState(() => _pageTexts[pageIndex] = text.trim());
       }
     } catch (e) {
@@ -172,56 +172,77 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
     await _tts.setPitch(1.0);
     await _tts.setVolume(1.0);
 
-    // Auto continue to next page when done reading
     _tts.setCompletionHandler(() async {
-      if (!mounted || !_isSpeaking) return;
-      // Move to next page automatically
+      // _disposed check is the critical guard here
+      if (_disposed || !_isSpeaking) return;
       if (_currentPage < _totalPages - 1) {
         await _pdfViewController?.setPage(_currentPage + 1);
         await Future.delayed(const Duration(milliseconds: 500));
+        if (_disposed || !_isSpeaking) return; // check again after delay
         await _speakCurrentPage();
       } else {
-        // End of book
-        if (mounted) setState(() => _isSpeaking = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You reached the end of the book! 🎉')),
-        );
+        _isSpeaking = false;
+        if (!_disposed && mounted) {
+          setState(() {});
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                Text('You reached the end of the book! 🎉')),
+          );
+        }
       }
     });
   }
 
   Future<void> _speakCurrentPage() async {
-    if (!mounted) return;
-
-    // Extract text if not yet done
+    if (_disposed || !mounted) return;
     if (!_pageTexts.containsKey(_currentPage)) {
-      setState(() => _isExtracting = true);
+      if (mounted) setState(() => _isExtracting = true);
       await _extractPageText(_currentPage);
+      if (_disposed) return;
       if (mounted) setState(() => _isExtracting = false);
     }
-
+    if (_disposed || !_isSpeaking) return;
     final text = _pageTexts[_currentPage] ?? '';
-
-    if (text.isEmpty) {
-      // No text on this page — skip to next
-      await _tts.speak('No text on this page.');
-    } else {
-      await _tts.speak(text);
-    }
+    await _tts.speak(text.isEmpty ? 'No text on this page.' : text);
   }
 
   Future<void> _toggleTts() async {
+    if (_disposed) return;
     if (_isSpeaking) {
+      _isSpeaking = false; // set flag BEFORE stop
+      _tts.setCompletionHandler(() {});
       await _tts.stop();
-      if (mounted) setState(() => _isSpeaking = false);
+      if (!_disposed && mounted) setState(() {});
     } else {
       if (mounted) setState(() => _isSpeaking = true);
       await _speakCurrentPage();
     }
   }
 
+  Future<void> _goToPage(int page) async {
+    if (_disposed) return;
+    if (page < 0 || page >= _totalPages) return;
+    final wasPlaying = _isSpeaking;
+    _isSpeaking = false; // flag off before stop
+    _tts.setCompletionHandler(() {});
+    await _tts.stop();
+    if (_disposed) return;
+    await _pdfViewController?.setPage(page);
+    _extractPageText(page);
+    if (wasPlaying && !_disposed) {
+      _isSpeaking = true;
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (_disposed || !_isSpeaking) return;
+      await _speakCurrentPage();
+    }
+  }
+
   @override
   void dispose() {
+    _disposed = true;  // set FIRST — blocks all async callbacks
+    _isSpeaking = false;
+    _tts.setCompletionHandler(() {});
     _tts.stop();
     _pdfDoc?.dispose();
     super.dispose();
@@ -234,33 +255,23 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(
-          _totalPages > 0
-              ? 'Page ${_currentPage + 1} / $_totalPages'
-              : widget.comic.title,
-          style: const TextStyle(fontSize: 16),
-        ),
-        actions: [
-          // TTS status indicator
-          if (_isExtracting)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.comic.title,
+              style: const TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (_totalPages > 0)
+              Text(
+                'Page ${_currentPage + 1} of $_totalPages',
+                style: const TextStyle(
+                    fontSize: 12, color: Colors.white60),
               ),
-            ),
-          IconButton(
-            icon: Icon(
-              _isSpeaking ? Icons.volume_up : Icons.volume_off,
-              color: _isSpeaking ? AppTheme.accent : Colors.white,
-            ),
-            tooltip: _isSpeaking ? 'Stop reading' : 'Read aloud',
-            onPressed: _isExtracting ? null : _toggleTts,
-          ),
-        ],
+          ],
+        ),
       ),
       body: _isLoading
           ? const Center(
@@ -279,91 +290,170 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Text(_error,
-              style: const TextStyle(color: Colors.white),
+              style:
+              const TextStyle(color: Colors.white),
               textAlign: TextAlign.center),
         ),
       )
-          : Stack(
+          : Column(
         children: [
-          PDFView(
-            filePath: _localPath!,
-            enableSwipe: true,
-            swipeHorizontal: true,
-            autoSpacing: false,
-            pageFling: true,
-            pageSnap: true,
-            defaultPage: _currentPage,
-            fitPolicy: FitPolicy.BOTH,
-            onRender: (pages) {
-              setState(() => _totalPages = pages ?? 0);
-            },
-            onViewCreated: (controller) {
-              _pdfViewController = controller;
-            },
-            onPageChanged: (page, total) {
-              final newPage = page ?? 0;
-              setState(() {
-                _currentPage = newPage;
-                _totalPages = total ?? 0;
-              });
-              // Pre-extract next page text
-              _extractPageText(newPage);
-              if (newPage + 1 < (total ?? 0)) {
-                _extractPageText(newPage + 1);
-              }
-              // If TTS is on, reading continues
-              // via completion handler automatically
-            },
-            onError: (error) {
-              setState(() => _error = error.toString());
-            },
+          Expanded(
+            child: PDFView(
+              filePath: _localPath!,
+              enableSwipe: true,
+              swipeHorizontal: true,
+              autoSpacing: false,
+              pageFling: true,
+              pageSnap: true,
+              defaultPage: _currentPage,
+              fitPolicy: FitPolicy.BOTH,
+              onRender: (pages) {
+                if (!_disposed && mounted) {
+                  setState(
+                          () => _totalPages = pages ?? 0);
+                }
+              },
+              onViewCreated: (controller) {
+                _pdfViewController = controller;
+              },
+              onPageChanged: (page, total) {
+                if (_disposed) return;
+                final newPage = page ?? 0;
+                if (mounted) {
+                  setState(() {
+                    _currentPage = newPage;
+                    _totalPages = total ?? 0;
+                  });
+                }
+                _extractPageText(newPage);
+                if (newPage + 1 < (total ?? 0)) {
+                  _extractPageText(newPage + 1);
+                }
+              },
+              onError: (error) {
+                if (!_disposed && mounted) {
+                  setState(
+                          () => _error = error.toString());
+                }
+              },
+            ),
           ),
-          // TTS active banner
-          if (_isSpeaking)
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppTheme.accent.withOpacity(0.5)),
+
+          // Bottom control bar
+          Container(
+            color: const Color(0xFF1A1A2E),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: _currentPage > 0
+                      ? () =>
+                      _goToPage(_currentPage - 1)
+                      : null,
+                  icon: const Icon(
+                      Icons.arrow_back_ios_rounded),
+                  color: _currentPage > 0
+                      ? Colors.white
+                      : Colors.white24,
+                  tooltip: 'Previous page',
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.volume_up,
-                        color: AppTheme.accent, size: 16),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'Reading aloud... tap 🔊 to stop',
-                        style: TextStyle(
-                            color: Colors.white, fontSize: 12),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      _totalPages > 0
+                          ? '${_currentPage + 1} / $_totalPages'
+                          : '-',
+                      style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed:
+                  _currentPage < _totalPages - 1
+                      ? () => _goToPage(
+                      _currentPage + 1)
+                      : null,
+                  icon: const Icon(
+                      Icons.arrow_forward_ios_rounded),
+                  color:
+                  _currentPage < _totalPages - 1
+                      ? Colors.white
+                      : Colors.white24,
+                  tooltip: 'Next page',
+                ),
+                const SizedBox(width: 8),
+                Container(
+                    width: 1,
+                    height: 28,
+                    color: Colors.white24),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _isExtracting
+                      ? null
+                      : _toggleTts,
+                  child: Container(
+                    padding:
+                    const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _isSpeaking
+                          ? AppTheme.accent
+                          .withValues(alpha:0.2)
+                          : Colors.white
+                          .withValues(alpha:0.08),
+                      borderRadius:
+                      BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _isSpeaking
+                            ? AppTheme.accent
+                            : Colors.white24,
                       ),
                     ),
-                    // Manual next page button
-                    if (!_isExtracting)
-                      TextButton(
-                        onPressed: () async {
-                          await _tts.stop();
-                          if (_currentPage < _totalPages - 1) {
-                            await _pdfViewController
-                                ?.setPage(_currentPage + 1);
-                          }
-                        },
-                        child: const Text('Skip →',
-                            style: TextStyle(
-                                color: AppTheme.accent,
-                                fontSize: 12)),
-                      ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _isExtracting
+                            ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child:
+                          CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : Icon(
+                          _isSpeaking
+                              ? Icons.volume_up
+                              : Icons.volume_off,
+                          color: _isSpeaking
+                              ? AppTheme.accent
+                              : Colors.white70,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _isSpeaking ? 'Stop' : 'Read',
+                          style: TextStyle(
+                            color: _isSpeaking
+                                ? AppTheme.accent
+                                : Colors.white70,
+                            fontSize: 13,
+                            fontWeight:
+                            FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
+          ),
         ],
       ),
     );

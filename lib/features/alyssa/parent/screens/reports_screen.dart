@@ -1,10 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/constants/app_theme.dart';
-import '../../../../core/providers/child_provider.dart';
 import '../../../../core/services/child_service.dart';
-import '../../../../core/widgets/child_avatar.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../../models/child_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -61,56 +58,48 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  // ── Summary stats ────────────────────────────────
   int get _totalQuizzes => _results.length;
-
   int get _totalCoins => _results.fold(
       0, (sum, r) => sum + (r['coins_earned'] as int? ?? 0));
-
   int get _totalCorrect =>
       _results.fold(0, (sum, r) => sum + (r['score'] as int? ?? 0));
-
   int get _totalQuestions =>
       _results.fold(0, (sum, r) => sum + (r['total'] as int? ?? 0));
-
   double get _averageScore => _totalQuestions == 0
       ? 0
       : (_totalCorrect / _totalQuestions) * 100;
+  int get _perfectScores =>
+      _results.where((r) => r['score'] == r['total']).length;
 
-  int get _perfectScores => _results
-      .where((r) => r['score'] == r['total'])
-      .length;
-
-  // ── Chart data ───────────────────────────────────
   List<FlSpot> get _scoreSpots {
     final recent = _results.take(7).toList().reversed.toList();
     return recent.asMap().entries.map((e) {
       final score = e.value['score'] as int? ?? 0;
       final total = e.value['total'] as int? ?? 1;
-      return FlSpot(
-          e.key.toDouble(), (score / total * 100));
+      return FlSpot(e.key.toDouble(), (score / total * 100));
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Reports')),
       body: _isLoading
           ? const LoadingWidget()
           : _children.isEmpty
-          ? const Center(
+          ? Center(
         child: Text('No children profiles found.',
             style: TextStyle(
-                color: AppTheme.textSecondary)),
+                color: cs.onSurface.withValues(alpha:0.6))),
       )
           : Column(
         children: [
-          // Child selector
+          // ── Child selector ───────────────────────
           Container(
-            color: AppTheme.primary.withOpacity(0.05),
             padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 8),
+                horizontal: 16, vertical: 10),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -124,37 +113,58 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       _loadResults(child.id);
                     },
                     child: AnimatedContainer(
-                      duration:
-                      const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.only(right: 8),
+                      duration: const Duration(
+                          milliseconds: 200),
+                      margin: const EdgeInsets.only(
+                          right: 8),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                          horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppTheme.primary
-                            : AppTheme.surface,
+                            : cs.surface,
                         borderRadius:
-                        BorderRadius.circular(20),
+                        BorderRadius.circular(24),
                         border: Border.all(
                           color: isSelected
                               ? AppTheme.primary
-                              : AppTheme.border,
+                              : cs.outline,
+                          width: isSelected ? 2 : 1,
                         ),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          ChildAvatar(
-                            nickname: child.nickname,
-                            avatarUrl: child.avatarUrl,
-                            radius: 12,
+                          child.avatarUrl != null && child.avatarUrl!.isNotEmpty
+                              ? CircleAvatar(
+                            radius: 14,
+                            backgroundImage: NetworkImage(child.avatarUrl!),
+                          )
+                              : CircleAvatar(
+                            radius: 14,
+                            backgroundColor: isSelected
+                                ? Colors.white.withValues(alpha:0.3)
+                                : AppTheme.primary.withValues(alpha:0.15),
+                            child: Text(
+                              child.nickname.isNotEmpty
+                                  ? child.nickname[0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppTheme.primary,
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             child.nickname,
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
-                                  : AppTheme.textPrimary,
+                                  : cs.onSurface,
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.normal,
@@ -169,7 +179,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
             ),
           ),
-          // Report content
+
+          // ── Report content ───────────────────────
           Expanded(
             child: _isLoadingResults
                 ? const LoadingWidget()
@@ -179,17 +190,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 mainAxisAlignment:
                 MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                       Icons.assignment_outlined,
                       size: 72,
-                      color: AppTheme.textSecondary),
+                      color: cs.onSurface
+                          .withValues(alpha:0.4)),
                   const SizedBox(height: 16),
                   Text(
                     '${_selectedChild?.nickname} hasn\'t completed any quizzes yet.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color:
-                        AppTheme.textSecondary),
+                    style: TextStyle(
+                        color: cs.onSurface
+                            .withValues(alpha:0.6)),
                   ),
                 ],
               ),
@@ -200,11 +212,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 crossAxisAlignment:
                 CrossAxisAlignment.start,
                 children: [
-                  // Summary cards
                   _buildSummaryCards(),
                   const SizedBox(height: 24),
-
-                  // Score trend chart
                   if (_results.length >= 2) ...[
                     const Text('Score Trend',
                         style: TextStyle(
@@ -212,36 +221,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             fontWeight:
                             FontWeight.bold)),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Last 7 quiz scores (%)',
                       style: TextStyle(
-                          color:
-                          AppTheme.textSecondary,
+                          color: cs.onSurface
+                              .withValues(alpha:0.6),
                           fontSize: 12),
                     ),
                     const SizedBox(height: 12),
-                    _buildScoreChart(),
+                    _buildScoreChart(cs),
                     const SizedBox(height: 24),
                   ],
-
-                  // Subject breakdown
                   const Text('By Subject',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight:
                           FontWeight.bold)),
                   const SizedBox(height: 12),
-                  _buildSubjectBreakdown(),
+                  _buildSubjectBreakdown(cs),
                   const SizedBox(height: 24),
-
-                  // Quiz history
                   const Text('Quiz History',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight:
                           FontWeight.bold)),
                   const SizedBox(height: 12),
-                  _buildQuizHistory(),
+                  _buildQuizHistory(cs),
                 ],
               ),
             ),
@@ -254,7 +259,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _buildSummaryCards() {
     return Column(
       children: [
-        // Top row
         Row(
           children: [
             Expanded(
@@ -268,8 +272,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _statCard(
-                value:
-                '${_averageScore.toStringAsFixed(0)}%',
+                value: '${_averageScore.toStringAsFixed(0)}%',
                 label: 'Avg Score',
                 icon: Icons.percent,
                 color: _averageScore >= 80
@@ -282,7 +285,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // Bottom row
         Row(
           children: [
             Expanded(
@@ -308,6 +310,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
+  // Stat cards use brand colors with opacity — these work in both themes
   Widget _statCard({
     required String value,
     required String label,
@@ -317,9 +320,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,24 +335,30 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   fontWeight: FontWeight.bold,
                   color: color)),
           Text(label,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 12)),
+              style: TextStyle(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha:0.6),
+                  fontSize: 12)),
         ],
       ),
     );
   }
 
-  Widget _buildScoreChart() {
+  Widget _buildScoreChart(ColorScheme cs) {
     final spots = _scoreSpots;
     if (spots.isEmpty) return const SizedBox();
+
+    final secondaryColor = cs.onSurface.withValues(alpha:0.6);
 
     return Container(
       height: 180,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: cs.outline),
       ),
       child: LineChart(
         LineChartData(
@@ -360,7 +369,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             drawVerticalLine: false,
             horizontalInterval: 25,
             getDrawingHorizontalLine: (_) => FlLine(
-              color: AppTheme.border,
+              color: cs.outline,
               strokeWidth: 0.5,
             ),
           ),
@@ -373,9 +382,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 interval: 25,
                 getTitlesWidget: (value, _) => Text(
                   '${value.toInt()}%',
-                  style: const TextStyle(
-                      fontSize: 10,
-                      color: AppTheme.textSecondary),
+                  style: TextStyle(
+                      fontSize: 10, color: secondaryColor),
                 ),
               ),
             ),
@@ -384,9 +392,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 showTitles: true,
                 getTitlesWidget: (value, _) => Text(
                   'Q${value.toInt() + 1}',
-                  style: const TextStyle(
-                      fontSize: 10,
-                      color: AppTheme.textSecondary),
+                  style: TextStyle(
+                      fontSize: 10, color: secondaryColor),
                 ),
               ),
             ),
@@ -409,12 +416,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       radius: 5,
                       color: AppTheme.primary,
                       strokeWidth: 2,
-                      strokeColor: Colors.white,
+                      strokeColor: cs.surface,
                     ),
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: AppTheme.primary.withOpacity(0.1),
+                color: AppTheme.primary.withValues(alpha:0.1),
               ),
             ),
           ],
@@ -423,7 +430,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildSubjectBreakdown() {
+  Widget _buildSubjectBreakdown(ColorScheme cs) {
     final Map<String, List<Map<String, dynamic>>> bySubject = {};
     for (final r in _results) {
       final subject =
@@ -448,16 +455,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: cs.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.border),
+            border: Border.all(color: cs.outline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
@@ -465,7 +471,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.15),
+                          color: color.withValues(alpha:0.15),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(subject,
@@ -476,8 +482,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text('${subResults.length} quizzes',
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary,
+                          style: TextStyle(
+                              color:
+                              cs.onSurface.withValues(alpha:0.6),
                               fontSize: 12)),
                     ],
                   ),
@@ -498,7 +505,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: pct,
-                  backgroundColor: color.withOpacity(0.15),
+                  backgroundColor: color.withValues(alpha:0.15),
                   valueColor: AlwaysStoppedAnimation(color),
                   minHeight: 8,
                 ),
@@ -506,9 +513,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 4),
               Text(
                 '$correct correct out of $total questions',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11,
-                    color: AppTheme.textSecondary),
+                    color: cs.onSurface.withValues(alpha:0.6)),
               ),
             ],
           ),
@@ -517,16 +524,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildQuizHistory() {
+  Widget _buildQuizHistory(ColorScheme cs) {
     return Column(
       children: _results.map((r) {
         final score = r['score'] as int? ?? 0;
         final total = r['total'] as int? ?? 1;
         final coins = r['coins_earned'] as int? ?? 0;
-        final title =
-            r['quizzes']?['title'] as String? ?? 'Quiz';
-        final subject =
-            r['quizzes']?['subject'] as String? ?? '';
+        final title = r['quizzes']?['title'] as String? ?? 'Quiz';
+        final subject = r['quizzes']?['subject'] as String? ?? '';
         final completedAt =
         DateTime.parse(r['completed_at'] as String);
         final pct = score / total;
@@ -536,9 +541,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: cs.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.border),
+            border: Border.all(color: cs.outline),
           ),
           child: Row(
             children: [
@@ -552,7 +557,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       : pct >= 0.6
                       ? AppTheme.accent
                       : AppTheme.danger)
-                      .withOpacity(0.15),
+                      .withValues(alpha:0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -582,14 +587,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     Row(
                       children: [
                         Text(subject,
-                            style: const TextStyle(
-                                color: AppTheme.textSecondary,
+                            style: TextStyle(
+                                color:
+                                cs.onSurface.withValues(alpha:0.6),
                                 fontSize: 12)),
                         const SizedBox(width: 8),
                         Text(
                           _formatDate(completedAt),
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary,
+                          style: TextStyle(
+                              color: cs.onSurface.withValues(alpha:0.6),
                               fontSize: 11),
                         ),
                       ],
@@ -615,16 +621,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       ],
                     ),
                   if (!isFirst)
-                    const Text('Practice',
+                    Text('Practice',
                         style: TextStyle(
                             fontSize: 11,
-                            color: AppTheme.textSecondary)),
+                            color: cs.onSurface.withValues(alpha:0.6))),
                   const SizedBox(height: 2),
-                  // Star rating
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: List.generate(3, (i) {
-                      final stars = pct == 1.0 ? 3 : pct >= 0.6 ? 2 : pct >= 0.3 ? 1 : 0;
+                      final stars = pct == 1.0
+                          ? 3
+                          : pct >= 0.6
+                          ? 2
+                          : pct >= 0.3
+                          ? 1
+                          : 0;
                       final filled = i < stars;
                       return Icon(
                         filled ? Icons.star : Icons.star_border,

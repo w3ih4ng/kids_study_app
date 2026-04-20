@@ -5,7 +5,6 @@ import '../../../../core/services/child_service.dart';
 import '../../../../core/widgets/animated_pet_widget.dart';
 import '../../../../core/widgets/child_bottom_nav_bar.dart';
 import '../../../../core/widgets/coins_badge.dart';
-import '../../../../core/widgets/child_avatar.dart';
 import '../../../cheesean/home/screens/home_screen.dart';
 import '../../../weihang/lessons/screens/lesson_list_screen.dart';
 import '../../../weihang/quizzes/screens/quiz_list_screen.dart';
@@ -16,8 +15,6 @@ import '../../auth/screens/pin_screen.dart';
 import 'parent_dashboard_screen.dart';
 import '../../../../core/services/pet_service.dart';
 import '../../../../models/pet_model.dart';
-import '../../../cheesean/social/screens/friends_screen.dart';
-import '../../../cheesean/social/screens/leaderboard_screen.dart';
 
 class ChildDashboardScreen extends StatefulWidget {
   const ChildDashboardScreen({super.key});
@@ -119,7 +116,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                       radius: 28,
                       // White background so the letter pops against
                       // the indigo AppBar
-                      backgroundColor: Colors.white.withOpacity(0.6),
+                      backgroundColor: Colors.white.withValues(alpha:0.6),
                       child: Text(
                         initial,
                         style: const TextStyle(

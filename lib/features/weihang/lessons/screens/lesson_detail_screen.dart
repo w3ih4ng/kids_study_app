@@ -86,14 +86,14 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 fit: BoxFit.fitWidth,
                 errorBuilder: (_, __, ___) => Container(
                   height: 220,
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha:0.1),
                   child: Icon(Icons.broken_image, color: color, size: 48),
                 ),
               )
             else
               Container(
                 height: 200,
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha:0.1),
                 child: Center(
                   child: Icon(Icons.image, color: color, size: 64),
                 ),
@@ -151,7 +151,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha:0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(label,

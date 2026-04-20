@@ -104,7 +104,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 const SizedBox(height: 12),
                 // Subject dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedSubject,
+                  initialValue: _selectedSubject,
                   decoration: const InputDecoration(
                       labelText: 'Subject',
                       border: OutlineInputBorder()),
@@ -117,7 +117,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 const SizedBox(height: 12),
                 // Difficulty dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedDifficulty,
+                  initialValue: _selectedDifficulty,
                   decoration: const InputDecoration(
                       labelText: 'Difficulty',
                       border: OutlineInputBorder()),
@@ -129,7 +129,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _selectedAgeLevel,
+                  initialValue: _selectedAgeLevel,
                   decoration: const InputDecoration(
                       labelText: 'Age Level',
                       border: OutlineInputBorder()),
@@ -141,7 +141,7 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 const SizedBox(height: 12),
                 // Type toggle
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(
                       labelText: 'Content Type',
                       border: OutlineInputBorder()),
@@ -472,8 +472,8 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
               leading: CircleAvatar(
                 backgroundColor:
                 lesson.subject == 'Math'
-                    ? AppTheme.lessonsColor.withOpacity(0.2)
-                    : AppTheme.quizzesColor.withOpacity(0.2),
+                    ? AppTheme.lessonsColor.withValues(alpha:0.2)
+                    : AppTheme.quizzesColor.withValues(alpha:0.2),
                 child: Icon(
                   lesson.type == 'youtube'
                       ? Icons.play_circle

@@ -173,7 +173,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         Container(
           padding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: AppTheme.primary.withOpacity(0.04),
+          color: AppTheme.primary.withValues(alpha:0.04),
           child: Row(
             children: ['All', 'Math', 'English'].map((subject) {
               final isSelected = selectedFilter == subject;
@@ -194,12 +194,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     decoration: BoxDecoration(
                       color: isSelected
                           ? color
-                          : color.withOpacity(0.1),
+                          : color.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
                             ? color
-                            : color.withOpacity(0.3),
+                            : color.withValues(alpha:0.3),
                       ),
                     ),
                     child: Text(
@@ -261,7 +261,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
             color: isMe
-                ? AppTheme.primary.withOpacity(0.08)
+                ? AppTheme.primary.withValues(alpha:0.08)
                 : cs.surface,                           // changed
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
@@ -319,7 +319,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.1),
+                        color: AppTheme.primary.withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text('You',
@@ -335,13 +335,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 '${entry.totalCorrect} correct · ${entry.totalCoins} coins',
                 style: TextStyle(
                     fontSize: 11,
-                    color: cs.onSurface.withOpacity(0.6)),  // changed
+                    color: cs.onSurface.withValues(alpha:0.6)),  // changed
               ),
               trailing: Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _rankColor(rank).withOpacity(0.12),
+                  color: _rankColor(rank).withValues(alpha:0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -615,9 +615,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:0.3)),
       ),
       child: Column(
         children: [
@@ -753,7 +753,7 @@ class LimitedProfileSheet extends StatelessWidget {
             padding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
+              color: AppTheme.primary.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -772,10 +772,10 @@ class LimitedProfileSheet extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.05),
+              color: AppTheme.primary.withValues(alpha:0.05),
               borderRadius: BorderRadius.circular(16),
               border:
-              Border.all(color: AppTheme.primary.withOpacity(0.2)),
+              Border.all(color: AppTheme.primary.withValues(alpha:0.2)),
             ),
             child: Column(
               children: [
@@ -807,7 +807,7 @@ class LimitedProfileSheet extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withOpacity(0.1),
+                              color: AppTheme.primary.withValues(alpha:0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(

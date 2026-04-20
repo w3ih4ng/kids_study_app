@@ -171,14 +171,14 @@ class _PetShopScreenState extends State<PetShopScreen>
           child: Container(
             decoration: BoxDecoration(
               color: owned
-                  ? AppTheme.success.withOpacity(0.1)
+                  ? AppTheme.success.withValues(alpha:0.1)
                   : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: owned
                     ? AppTheme.success
                     : canAfford
-                    ? AppTheme.petsColor.withOpacity(0.3)
+                    ? AppTheme.petsColor.withValues(alpha:0.3)
                     : Theme.of(context).colorScheme.outline,
                 width: owned ? 2 : 1,
               ),
@@ -197,7 +197,7 @@ class _PetShopScreenState extends State<PetShopScreen>
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.success.withOpacity(0.15),
+                      color: AppTheme.success.withValues(alpha:0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text('Owned ✓',
@@ -212,8 +212,8 @@ class _PetShopScreenState extends State<PetShopScreen>
                         horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: canAfford
-                          ? AppTheme.accent.withOpacity(0.15)
-                          : AppTheme.danger.withOpacity(0.1),
+                          ? AppTheme.accent.withValues(alpha:0.15)
+                          : AppTheme.danger.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -293,7 +293,7 @@ class _PetShopScreenState extends State<PetShopScreen>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppTheme.petsColor.withOpacity(0.15),
+                                color: AppTheme.petsColor.withValues(alpha:0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Text('Active',

@@ -166,7 +166,7 @@ class _QuizScreenState extends State<QuizScreen> {
             ? PreferredSize(
           preferredSize: const Size.fromHeight(28),
           child: Container(
-            color: AppTheme.accent.withOpacity(0.2),
+            color: AppTheme.accent.withValues(alpha:0.2),
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -215,9 +215,9 @@ class _QuizScreenState extends State<QuizScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.05),
+                color: AppTheme.primary.withValues(alpha:0.05),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+                border: Border.all(color: AppTheme.primary.withValues(alpha:0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +267,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     children: [
                       CircleAvatar(
                         radius: 14,
-                        backgroundColor: AppTheme.primary.withOpacity(0.1),
+                        backgroundColor: AppTheme.primary.withValues(alpha:0.1),
                         child: Text(key.toUpperCase(),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,

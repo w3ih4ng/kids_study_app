@@ -204,10 +204,10 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: AppTheme.petsColor.withOpacity(0.3)),
+                      color: AppTheme.petsColor.withValues(alpha:0.3)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha:0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

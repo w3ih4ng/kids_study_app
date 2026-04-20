@@ -75,7 +75,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.1),
+                  color: AppTheme.primary.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

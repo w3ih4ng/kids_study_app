@@ -260,7 +260,7 @@ class _AdminQuizQuestionsScreenState
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: _correctAnswer == key
-                          ? AppTheme.success.withOpacity(0.05)
+                          ? AppTheme.success.withValues(alpha:0.05)
                           : AppTheme.background,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
@@ -372,7 +372,7 @@ class _AdminQuizQuestionsScreenState
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppTheme.success.withOpacity(0.1),
+                    color: AppTheme.success.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -519,7 +519,7 @@ class _AdminQuizQuestionsScreenState
                       CircleAvatar(
                         radius: 14,
                         backgroundColor:
-                        AppTheme.primary.withOpacity(0.1),
+                        AppTheme.primary.withValues(alpha:0.1),
                         child: Text('${i + 1}',
                             style: const TextStyle(
                                 fontSize: 12,
@@ -593,7 +593,7 @@ class _AdminQuizQuestionsScreenState
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: isCorrect
-                            ? AppTheme.success.withOpacity(0.1)
+                            ? AppTheme.success.withValues(alpha:0.1)
                             : AppTheme.background,
                         borderRadius:
                         BorderRadius.circular(8),

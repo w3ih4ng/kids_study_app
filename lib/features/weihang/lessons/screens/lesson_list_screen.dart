@@ -63,7 +63,7 @@ class _LessonListScreenState extends State<LessonListScreen>
           ),
         ),
         Container(
-          color: AppTheme.lessonsColor.withOpacity(0.06),
+          color: AppTheme.lessonsColor.withValues(alpha:0.06),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -81,12 +81,12 @@ class _LessonListScreenState extends State<LessonListScreen>
                       decoration: BoxDecoration(
                         color: selected
                             ? AppTheme.lessonsColor
-                            : AppTheme.lessonsColor.withOpacity(0.1),
+                            : AppTheme.lessonsColor.withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selected
                               ? AppTheme.lessonsColor
-                              : AppTheme.lessonsColor.withOpacity(0.3),
+                              : AppTheme.lessonsColor.withValues(alpha:0.3),
                         ),
                       ),
                       child: Text(
@@ -159,7 +159,7 @@ class _LessonListScreenState extends State<LessonListScreen>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.07),
+              color: Colors.black.withValues(alpha:0.07),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -220,10 +220,10 @@ class _LessonListScreenState extends State<LessonListScreen>
 
   Widget _placeholderThumb(Color color) {
     return Container(
-      color: color.withOpacity(0.12),
+      color: color.withValues(alpha:0.12),
       child: Center(
         child: Icon(Icons.play_lesson,
-            color: color.withOpacity(0.5), size: 36),
+            color: color.withValues(alpha:0.5), size: 36),
       ),
     );
   }
@@ -232,7 +232,7 @@ class _LessonListScreenState extends State<LessonListScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha:0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(label,

@@ -10,7 +10,6 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/child_avatar.dart';
 import '../../auth/screens/pin_screen.dart';
 import '../../auth/screens/parent_dashboard_screen.dart';
-import '../../../../core/providers/theme_provider.dart';
 
 class ChildProfileScreen extends StatefulWidget {
   const ChildProfileScreen({super.key});
@@ -200,9 +199,9 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppTheme.accent.withOpacity(0.1),
+                color: AppTheme.accent.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.accent.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.accent.withValues(alpha:0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -234,10 +233,10 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.05),
+                color: AppTheme.primary.withValues(alpha:0.05),
                 borderRadius: BorderRadius.circular(16),
                 border:
-                Border.all(color: AppTheme.primary.withOpacity(0.2)),
+                Border.all(color: AppTheme.primary.withValues(alpha:0.2)),
               ),
               child: Column(
                 children: [
@@ -274,7 +273,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color:
-                                AppTheme.primary.withOpacity(0.1),
+                                AppTheme.primary.withValues(alpha:0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(

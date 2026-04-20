@@ -155,10 +155,10 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.05),
+                color: AppTheme.primary.withValues(alpha:0.05),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                    color: AppTheme.primary.withOpacity(0.2)),
+                    color: AppTheme.primary.withValues(alpha:0.2)),
               ),
               child: Column(
                 children: [
@@ -191,7 +191,7 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color:
-                              AppTheme.primary.withOpacity(0.1),
+                              AppTheme.primary.withValues(alpha:0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -242,12 +242,12 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? color
-                            : color.withOpacity(0.1),
+                            : color.withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
                               ? color
-                              : color.withOpacity(0.3),
+                              : color.withValues(alpha:0.3),
                         ),
                       ),
                       child: Text(
@@ -366,7 +366,7 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.border.withOpacity(0.4),
+        color: AppTheme.border.withValues(alpha:0.4),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -392,9 +392,9 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:0.3)),
       ),
       child: Column(
         children: [

@@ -230,10 +230,10 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                   child: Container(
                     height: 160,
                     decoration: BoxDecoration(
-                      color: AppTheme.booksColor.withOpacity(0.1),
+                      color: AppTheme.booksColor.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: AppTheme.booksColor.withOpacity(0.3)),
+                          color: AppTheme.booksColor.withValues(alpha:0.3)),
                     ),
                     child: _coverUrl != null
                         ? Stack(
@@ -294,7 +294,7 @@ class _AdminBooksScreenState extends State<AdminBooksScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: _pdfUrl != null
-                          ? AppTheme.success.withOpacity(0.1)
+                          ? AppTheme.success.withValues(alpha:0.1)
                           : AppTheme.background,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(

@@ -97,7 +97,7 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _selectedSubject,
+                  initialValue: _selectedSubject,
                   decoration: const InputDecoration(
                       labelText: 'Subject',
                       border: OutlineInputBorder()),
@@ -110,7 +110,7 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                 const SizedBox(height: 12),
                 // Optional lesson link
                 DropdownButtonFormField<String?>(
-                  value: _selectedLessonId,
+                  initialValue: _selectedLessonId,
                   decoration: const InputDecoration(
                       labelText: 'Linked Lesson (optional)',
                       border: OutlineInputBorder()),
@@ -125,7 +125,7 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _selectedAgeLevel,
+                  initialValue: _selectedAgeLevel,
                   decoration: const InputDecoration(
                       labelText: 'Age Level',
                       border: OutlineInputBorder()),
@@ -361,7 +361,7 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor:
-                AppTheme.quizzesColor.withOpacity(0.2),
+                AppTheme.quizzesColor.withValues(alpha:0.2),
                 child: const Icon(Icons.quiz,
                     color: AppTheme.quizzesColor),
               ),

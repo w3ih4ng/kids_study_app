@@ -236,10 +236,10 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
                         width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                          color: AppTheme.petsColor.withOpacity(0.1),
+                          color: AppTheme.petsColor.withValues(alpha:0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: AppTheme.petsColor.withOpacity(0.3)),
+                              color: AppTheme.petsColor.withValues(alpha:0.3)),
                         ),
                         child: _imageUrl != null
                             ? ClipRRect(
@@ -299,7 +299,7 @@ class _AdminPetsScreenState extends State<AdminPetsScreen> {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: _soundUrl != null
-                          ? AppTheme.success.withOpacity(0.1)
+                          ? AppTheme.success.withValues(alpha:0.1)
                           : AppTheme.background,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(

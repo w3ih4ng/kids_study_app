@@ -24,7 +24,7 @@ class ChildAvatar extends StatelessWidget {
     }
     return CircleAvatar(
       radius: radius,
-      backgroundColor: AppTheme.primary.withOpacity(0.15),
+      backgroundColor: AppTheme.primary.withValues(alpha:0.15),
       child: Text(
         nickname.isNotEmpty ? nickname[0].toUpperCase() : '?',
         style: TextStyle(

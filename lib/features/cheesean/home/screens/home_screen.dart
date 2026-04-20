@@ -107,7 +107,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                 child: Text(
                   'No friends yet! Add some friends.',
                   style: TextStyle(
-                      color: cs.onSurface.withOpacity(0.6)),
+                      color: cs.onSurface.withValues(alpha:0.6)),
                 ),
               ),
             )
@@ -201,7 +201,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                 child: Text(
                   'No rankings yet. Complete a quiz!',
                   style: TextStyle(
-                      color: cs.onSurface.withOpacity(0.6)),
+                      color: cs.onSurface.withValues(alpha:0.6)),
                 ),
               ),
             )
@@ -240,7 +240,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                     decoration: BoxDecoration(
                       color: isMe
                           ? AppTheme.primary
-                          .withOpacity(0.1)
+                          .withValues(alpha:0.1)
                           : cs.surface,
                       borderRadius:
                       BorderRadius.circular(12),

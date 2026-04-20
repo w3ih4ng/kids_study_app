@@ -72,7 +72,7 @@ class _BookListScreenState extends State<BookListScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha:0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -91,13 +91,13 @@ class _BookListScreenState extends State<BookListScreen> {
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
-                    color: AppTheme.booksColor.withOpacity(0.1),
+                    color: AppTheme.booksColor.withValues(alpha:0.1),
                     child: const Icon(Icons.menu_book,
                         size: 48, color: AppTheme.booksColor),
                   ),
                 )
                     : Container(
-                  color: AppTheme.booksColor.withOpacity(0.1),
+                  color: AppTheme.booksColor.withValues(alpha:0.1),
                   child: const Icon(Icons.menu_book,
                       size: 48, color: AppTheme.booksColor),
                 ),
@@ -118,7 +118,7 @@ class _BookListScreenState extends State<BookListScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: cs.onSurface.withOpacity(0.6),
+                            color: cs.onSurface.withValues(alpha:0.6),
                             fontSize: 11)),
                   const SizedBox(height: 4),
                   Row(
@@ -130,7 +130,7 @@ class _BookListScreenState extends State<BookListScreen> {
                         size: 12,
                         color: comic.pdfUrl != null
                             ? AppTheme.success
-                            : cs.onSurface.withOpacity(0.6),
+                            : cs.onSurface.withValues(alpha:0.6),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -141,7 +141,7 @@ class _BookListScreenState extends State<BookListScreen> {
                             fontSize: 11,
                             color: comic.pdfUrl != null
                                 ? AppTheme.success
-                                : cs.onSurface.withOpacity(0.6)),
+                                : cs.onSurface.withValues(alpha:0.6)),
                       ),
                     ],
                   ),

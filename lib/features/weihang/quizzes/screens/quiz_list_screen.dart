@@ -98,7 +98,7 @@ class _QuizListScreenState extends State<QuizListScreen>
           ),
         ),
         Container(
-          color: AppTheme.quizzesColor.withOpacity(0.06),
+          color: AppTheme.quizzesColor.withValues(alpha:0.06),
           padding:
           const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: SingleChildScrollView(
@@ -117,12 +117,12 @@ class _QuizListScreenState extends State<QuizListScreen>
                       decoration: BoxDecoration(
                         color: selected
                             ? AppTheme.quizzesColor
-                            : AppTheme.quizzesColor.withOpacity(0.1),
+                            : AppTheme.quizzesColor.withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selected
                               ? AppTheme.quizzesColor
-                              : AppTheme.quizzesColor.withOpacity(0.3),
+                              : AppTheme.quizzesColor.withValues(alpha:0.3),
                         ),
                       ),
                       child: Text(
@@ -187,13 +187,13 @@ class _QuizListScreenState extends State<QuizListScreen>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: attempted
-              ? AppTheme.success.withOpacity(0.5)
+              ? AppTheme.success.withValues(alpha:0.5)
               : cs.outline,
           width: attempted ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha:0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -264,7 +264,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 250),
                     child: Icon(Icons.keyboard_arrow_down,
-                        color: cs.onSurface.withOpacity(0.6)),
+                        color: cs.onSurface.withValues(alpha:0.6)),
                   ),
                 ],
               ),
@@ -273,7 +273,7 @@ class _QuizListScreenState extends State<QuizListScreen>
           if (isExpanded)
             Container(
               decoration: BoxDecoration(
-                color: AppTheme.quizzesColor.withOpacity(0.04),
+                color: AppTheme.quizzesColor.withValues(alpha:0.04),
                 borderRadius: const BorderRadius.vertical(
                     bottom: Radius.circular(16)),
                 border: Border(
@@ -325,7 +325,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: attempted
-                            ? cs.onSurface.withOpacity(0.4)
+                            ? cs.onSurface.withValues(alpha:0.4)
                             : AppTheme.quizzesColor,
                         foregroundColor: Colors.white,
                         padding:
@@ -342,7 +342,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                         'Practice mode — no coins for retakes',
                         style: TextStyle(
                             fontSize: 11,
-                            color: cs.onSurface.withOpacity(0.6)),
+                            color: cs.onSurface.withValues(alpha:0.6)),
                       ),
                     ),
                 ],
@@ -373,7 +373,7 @@ class _QuizListScreenState extends State<QuizListScreen>
                 fontWeight: FontWeight.bold, fontSize: 14)),
         Text(label,
             style: TextStyle(
-                color: cs.onSurface.withOpacity(0.6), fontSize: 11)),
+                color: cs.onSurface.withValues(alpha:0.6), fontSize: 11)),
       ],
     );
   }
@@ -383,7 +383,7 @@ class _QuizListScreenState extends State<QuizListScreen>
       padding:
       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha:0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(label,

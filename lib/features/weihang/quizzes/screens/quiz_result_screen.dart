@@ -52,10 +52,10 @@ class QuizResultScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent.withOpacity(0.1),
+                    color: AppTheme.accent.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                        color: AppTheme.accent.withOpacity(0.3)),
+                        color: AppTheme.accent.withValues(alpha:0.3)),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -101,10 +101,10 @@ class QuizResultScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.05),
+                  color: AppTheme.primary.withValues(alpha:0.05),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: AppTheme.primary.withOpacity(0.2)),
+                      color: AppTheme.primary.withValues(alpha:0.2)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,

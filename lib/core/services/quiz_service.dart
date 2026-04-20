@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/quiz_model.dart';
-import 'pet_service.dart';
 import 'leaderboard_service.dart';
 
 final supabase = Supabase.instance.client;
