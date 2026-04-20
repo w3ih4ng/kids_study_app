@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="kids_study_app"
+        android:label="Study N Go"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
