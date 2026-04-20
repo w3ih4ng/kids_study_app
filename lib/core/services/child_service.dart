@@ -50,4 +50,24 @@ class ChildService {
         .update({'pin': newPin})
         .eq('id', userId);
   }
+
+  static Future<void> saveLastActiveChild(String childId) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+    await Supabase.instance.client
+        .from('profiles')
+        .update({'last_active_child_id': childId})
+        .eq('id', userId);
+  }
+
+  static Future<String?> getLastActiveChildId() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return null;
+    final response = await Supabase.instance.client
+        .from('profiles')
+        .select('last_active_child_id')
+        .eq('id', userId)
+        .single();
+    return response['last_active_child_id'] as String?;
+  }
 }

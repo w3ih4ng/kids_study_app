@@ -84,7 +84,14 @@ class _AppStartupState extends State<AppStartup> {
       _go(const CreateChildScreen(isFirstTime: true));
     } else {
       final provider = context.read<ChildProvider>();
-      provider.setActiveChild(children.first);
+      final lastId = await ChildService.getLastActiveChildId();
+      final activeChild = lastId != null
+          ? children.firstWhere(
+            (c) => c.id == lastId,
+        orElse: () => children.first,
+      )
+          : children.first;
+      provider.setActiveChild(activeChild);
       _go(const ChildDashboardScreen());
     }
 

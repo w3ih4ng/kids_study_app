@@ -172,14 +172,14 @@ class _PetShopScreenState extends State<PetShopScreen>
             decoration: BoxDecoration(
               color: owned
                   ? AppTheme.success.withOpacity(0.1)
-                  : AppTheme.surface,
+                  : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: owned
                     ? AppTheme.success
                     : canAfford
                     ? AppTheme.petsColor.withOpacity(0.3)
-                    : AppTheme.border,
+                    : Theme.of(context).colorScheme.outline,
                 width: owned ? 2 : 1,
               ),
             ),

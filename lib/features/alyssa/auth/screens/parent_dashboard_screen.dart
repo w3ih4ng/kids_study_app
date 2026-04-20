@@ -40,46 +40,76 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     }
   }
 
-  void _switchToChild(ChildModel child) {
+  void _switchToChild(ChildModel child) async {
     context.read<ChildProvider>().setActiveChild(child);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Switched to ${child.nickname}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    await ChildService.saveLastActiveChild(child.id);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Switched to ${child.nickname}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   Future<void> _editChild(ChildModel child) async {
     final controller = TextEditingController(text: child.nickname);
-    final confirmed = await showDialog<bool>(
+
+    final result = await showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Edit Nickname'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Nickname',
-            border: OutlineInputBorder(),
-          ),
+        title: const Text('Edit Profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Nickname',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Delete button inside dialog
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.pop(context, 'delete'),
+                icon: const Icon(Icons.delete, color: AppTheme.danger),
+                label: const Text('Delete Profile',
+                    style: TextStyle(color: AppTheme.danger)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.danger),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context, 'cancel'),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save')),
+            onPressed: () => Navigator.pop(context, 'save'),
+            child: const Text('Save'),
+          ),
         ],
       ),
     );
-    if (confirmed == true && controller.text.trim().isNotEmpty) {
+
+    if (result == 'save' && controller.text.trim().isNotEmpty) {
       await ChildService.updateChild(child.id, controller.text.trim());
       await _loadChildren();
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Nickname updated!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Nickname updated!')));
       }
+    } else if (result == 'delete') {
+      await _deleteChild(child);
     }
   }
 
@@ -178,37 +208,63 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         ? const BorderSide(color: AppTheme.primary, width: 2)
                         : BorderSide.none,
                   ),
-                  child: ListTile(
-                    leading: ChildAvatar(
-                      avatarUrl: child.avatarUrl,
-                      nickname: child.nickname,
-                      radius: 22,
-                    ),
-                    title: Row(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
                       children: [
-                        Text(child.nickname,
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
-                        if (isActive) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text('Active',
-                                style: TextStyle(
-                                    fontSize: 11, color: AppTheme.primary)),
+                        // Avatar
+                        ChildAvatar(
+                          avatarUrl: child.avatarUrl,
+                          nickname: child.nickname,
+                          radius: 22,
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Name + coins + active badge
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      child.nickname,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (isActive) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primary.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Text('Active',
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              color: AppTheme.primary,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text('${child.coins} coins',
+                                  style: const TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 13)),
+                            ],
                           ),
-                        ],
-                      ],
-                    ),
-                    subtitle: Text('${child.coins} coins',
-                        style: const TextStyle(color: AppTheme.textSecondary)),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                        ),
+
+                        // Switch button (non-active only)
                         if (!isActive)
                           IconButton(
                             icon: const Icon(Icons.switch_account,
@@ -216,17 +272,13 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                             tooltip: 'Switch to this profile',
                             onPressed: () => _switchToChild(child),
                           ),
+
+                        // Edit button (delete moved inside)
                         IconButton(
                           icon: const Icon(Icons.edit,
                               color: AppTheme.textSecondary),
-                          tooltip: 'Edit nickname',
+                          tooltip: 'Edit',
                           onPressed: () => _editChild(child),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete,
-                              color: AppTheme.danger),
-                          tooltip: 'Delete profile',
-                          onPressed: () => _deleteChild(child),
                         ),
                       ],
                     ),
@@ -289,6 +341,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                   final current =
                       context.read<ChildProvider>().activeChild ?? children.first;
                   context.read<ChildProvider>().setActiveChild(current);
+                  await ChildService.saveLastActiveChild(current.id); // save it
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
