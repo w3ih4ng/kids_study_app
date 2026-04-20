@@ -7,6 +7,7 @@ import '../../../../core/services/friend_service.dart';
 import '../../../../core/widgets/child_avatar.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../models/friend_model.dart';
 import 'qr_scanner_screen.dart';
 
@@ -379,6 +380,14 @@ class _FriendsScreenState extends State<FriendsScreen>
                       isBestFriend: !friend.isBestFriend,
                     );
                     _load();
+                    if (mounted) {
+                      AppSnackbar.success(
+                        context,
+                        friend.isBestFriend
+                            ? '${friend.friendInfo?.nickname} removed from best friends.'
+                            : '${friend.friendInfo?.nickname} is now your best friend! ⭐',
+                      );
+                    }
                   },
                 ),
                 IconButton(

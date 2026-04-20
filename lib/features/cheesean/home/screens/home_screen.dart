@@ -10,6 +10,7 @@ import '../../../../models/leaderboard_model.dart';
 import '../../social/screens/friend_profile_screen.dart';
 import '../../social/screens/friends_screen.dart';
 import '../../social/screens/leaderboard_screen.dart';
+import 'package:kids_study_app/main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with RouteAware{
   List<FriendModel> _friends = [];
   List<LeaderboardModel> _topPlayers = [];
   bool _isLoading = true;
@@ -26,6 +27,24 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route changes
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
     _load();
   }
 
