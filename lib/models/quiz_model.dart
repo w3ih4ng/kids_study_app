@@ -46,14 +46,16 @@ class QuizQuestionModel {
   final String question;
   final String? questionImageUrl;
   final String optionA;
-  final String? optionAImageUrl;
   final String optionB;
-  final String? optionBImageUrl;
   final String optionC;
-  final String? optionCImageUrl;
   final String optionD;
+  final String? optionAImageUrl;
+  final String? optionBImageUrl;
+  final String? optionCImageUrl;
   final String? optionDImageUrl;
-  final String correctAnswer;
+  final String correctAnswer;        // single answer 'a'|'b'|'c'|'d'
+  final bool isMultipleAnswer;       // new
+  final List<String> correctAnswers; // new ['a','c'] for multiple
 
   QuizQuestionModel({
     required this.id,
@@ -61,31 +63,43 @@ class QuizQuestionModel {
     required this.question,
     this.questionImageUrl,
     required this.optionA,
-    this.optionAImageUrl,
     required this.optionB,
-    this.optionBImageUrl,
     required this.optionC,
-    this.optionCImageUrl,
     required this.optionD,
+    this.optionAImageUrl,
+    this.optionBImageUrl,
+    this.optionCImageUrl,
     this.optionDImageUrl,
     required this.correctAnswer,
+    this.isMultipleAnswer = false,
+    this.correctAnswers = const [],
   });
+
+  // All correct answers as a list — works for both single and multiple
+  List<String> get allCorrectAnswers =>
+      isMultipleAnswer && correctAnswers.isNotEmpty
+          ? correctAnswers
+          : [correctAnswer];
 
   factory QuizQuestionModel.fromMap(Map<String, dynamic> map) {
     return QuizQuestionModel(
       id: map['id'],
       quizId: map['quiz_id'],
-      question: map['question'],
+      question: map['question'] ?? '',
       questionImageUrl: map['question_image_url'],
-      optionA: map['option_a'],
+      optionA: map['option_a'] ?? '',
+      optionB: map['option_b'] ?? '',
+      optionC: map['option_c'] ?? '',
+      optionD: map['option_d'] ?? '',
       optionAImageUrl: map['option_a_image_url'],
-      optionB: map['option_b'],
       optionBImageUrl: map['option_b_image_url'],
-      optionC: map['option_c'],
       optionCImageUrl: map['option_c_image_url'],
-      optionD: map['option_d'],
       optionDImageUrl: map['option_d_image_url'],
-      correctAnswer: map['correct_answer'],
+      correctAnswer: map['correct_answer'] ?? 'a',
+      isMultipleAnswer: map['is_multiple_answer'] ?? false,
+      correctAnswers: map['correct_answers'] != null
+          ? List<String>.from(map['correct_answers'])
+          : [],
     );
   }
 

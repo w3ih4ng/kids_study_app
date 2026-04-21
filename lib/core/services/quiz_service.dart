@@ -57,6 +57,8 @@ class QuizService {
     required String optionD,
     String? optionDImageUrl,
     required String correctAnswer,
+    bool isMultipleAnswer = false,
+    List<String> correctAnswers = const [],
   }) async {
     await supabase.from('quiz_questions').insert({
       'quiz_id': quizId,
@@ -71,6 +73,8 @@ class QuizService {
       'option_d': optionD,
       'option_d_image_url': optionDImageUrl,
       'correct_answer': correctAnswer,
+      'is_multiple_answer': isMultipleAnswer,
+      'correct_answers': correctAnswers.isEmpty ? null : correctAnswers,
     });
   }
 
