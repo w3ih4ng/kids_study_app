@@ -110,6 +110,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => LimitedProfileSheet(entry: entry),
@@ -716,7 +717,7 @@ class LimitedProfileSheet extends StatelessWidget {
 
     // Approximate rank from score (sheet doesn't know list position,
     // caller can pass rank explicitly — here we show score prominence)
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,

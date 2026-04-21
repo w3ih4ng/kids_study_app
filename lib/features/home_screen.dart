@@ -10,7 +10,6 @@ import '../models/leaderboard_model.dart';
 import 'social/friend_profile_screen.dart';
 import 'social/friends_screen.dart';
 import 'social/leaderboard_screen.dart';
-import 'package:kids_study_app/main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,7 +18,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> with RouteAware{
+// No more RouteAware
+class HomeScreenState extends State<HomeScreen> {
   List<FriendModel> _friends = [];
   List<LeaderboardModel> _topPlayers = [];
   bool _isLoading = true;
@@ -30,24 +30,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
     _load();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Subscribe to route changes
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
-  }
-
-  @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
-  void didPopNext() {
-    _load();
-  }
-
+  // Called by child_dashboard_screen when home tab is tapped
   void reload() => _load();
 
   Future<void> _load() async {
@@ -85,11 +68,18 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
               children: [
                 const Text('My Friends',
                     style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
                 TextButton(
-                  onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(
-                          builder: (_) => const FriendsScreen())),
+                  onPressed: () async {
+                    // Reload after returning from FriendsScreen
+                    await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                            const FriendsScreen()));
+                    _load(); // reload friends + leaderboard
+                  },
                   child: const Text('See all →'),
                 ),
               ],
@@ -107,7 +97,8 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                 child: Text(
                   'No friends yet! Add some friends.',
                   style: TextStyle(
-                      color: cs.onSurface.withValues(alpha:0.6)),
+                      color: cs.onSurface
+                          .withValues(alpha: 0.6)),
                 ),
               ),
             )
@@ -119,7 +110,8 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                 itemBuilder: (_, i) {
                   final friend = _friends[i];
                   return Padding(
-                    padding: const EdgeInsets.only(right: 12),
+                    padding:
+                    const EdgeInsets.only(right: 12),
                     child: GestureDetector(
                       onTap: () {
                         final info = friend.friendInfo;
@@ -132,6 +124,8 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                                       friend: info),
                             ),
                           );
+                          // No reload — viewing profile
+                          // doesn't change friends list
                         }
                       },
                       child: Column(
@@ -140,10 +134,11 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                             children: [
                               ChildAvatar(
                                 nickname: friend
-                                    .friendInfo?.nickname ??
+                                    .friendInfo
+                                    ?.nickname ??
                                     '?',
-                                avatarUrl:
-                                friend.friendInfo?.avatarUrl,
+                                avatarUrl: friend
+                                    .friendInfo?.avatarUrl,
                                 radius: 28,
                               ),
                               if (friend.isBestFriend)
@@ -158,9 +153,10 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            friend.friendInfo?.nickname ?? '?',
-                            style:
-                            const TextStyle(fontSize: 11),
+                            friend.friendInfo?.nickname ??
+                                '?',
+                            style: const TextStyle(
+                                fontSize: 11),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -178,12 +174,18 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
               children: [
                 const Text('Top Players',
                     style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
                 TextButton(
-                  onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                          const LeaderboardScreen())),
+                  onPressed: () async {
+                    // Reload after returning from LeaderboardScreen
+                    await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                            const LeaderboardScreen()));
+                    _load();
+                  },
                   child: const Text('Full board →'),
                 ),
               ],
@@ -201,7 +203,8 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                 child: Text(
                   'No rankings yet. Complete a quiz!',
                   style: TextStyle(
-                      color: cs.onSurface.withValues(alpha:0.6)),
+                      color: cs.onSurface
+                          .withValues(alpha: 0.6)),
                 ),
               ),
             )
@@ -221,13 +224,15 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                       ? null
                       : () => showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true,
                     shape:
                     const RoundedRectangleBorder(
                       borderRadius:
                       BorderRadius.vertical(
-                          top:
-                          Radius.circular(24)),
+                          top: Radius.circular(
+                              24)),
                     ),
+                    // No reload after modal closes
                     builder: (_) =>
                         LimitedProfileSheet(
                             entry: entry),
@@ -240,7 +245,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                     decoration: BoxDecoration(
                       color: isMe
                           ? AppTheme.primary
-                          .withValues(alpha:0.1)
+                          .withValues(alpha: 0.1)
                           : cs.surface,
                       borderRadius:
                       BorderRadius.circular(12),
@@ -281,10 +286,6 @@ class HomeScreenState extends State<HomeScreen> with RouteAware{
                                   : cs.onSurface,
                             ),
                           ),
-                        ),
-                        const Text(
-                          // score shown via entry below
-                          '',
                         ),
                         Text(
                           '${entry.score} pts',

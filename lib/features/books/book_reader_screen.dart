@@ -316,9 +316,10 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
               onViewCreated: (controller) {
                 _pdfViewController = controller;
               },
-              onPageChanged: (page, total) {
+              onPageChanged: (page, total) async {
                 if (_disposed) return;
                 final newPage = page ?? 0;
+                final wasPlaying = _isSpeaking;
                 if (mounted) {
                   setState(() {
                     _currentPage = newPage;
@@ -328,6 +329,19 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
                 _extractPageText(newPage);
                 if (newPage + 1 < (total ?? 0)) {
                   _extractPageText(newPage + 1);
+                }
+                // If TTS was playing, stop current and restart on new page
+                if (wasPlaying && !_disposed) {
+                  _isSpeaking = false;
+                  _tts.setCompletionHandler(() {});
+                  await _tts.stop();
+                  if (_disposed) return;
+                  _setupTts(); // restore completion handler
+                  await Future.delayed(const Duration(milliseconds: 400));
+                  if (_disposed) return;
+                  _isSpeaking = true;
+                  if (mounted) setState(() {});
+                  await _speakCurrentPage();
                 }
               },
               onError: (error) {
