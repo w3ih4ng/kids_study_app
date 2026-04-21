@@ -5,6 +5,7 @@ import '../../core/services/child_service.dart';
 import '../../core/widgets/animated_pet_widget.dart';
 import '../../core/widgets/child_bottom_nav_bar.dart';
 import '../../core/widgets/coins_badge.dart';
+import '../coins/coins_history_screen.dart';
 import '../home_screen.dart';
 import '../lessons/lesson_list_screen.dart';
 import '../quizzes/quiz_list_screen.dart';
@@ -183,7 +184,23 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
           ),
         ),
       ),
-      actions: const [CoinsBadge(), SizedBox(width: 12)],
+      actions: [
+        GestureDetector(
+          onTap: () {
+            final child = context.read<ChildProvider>().activeChild;
+            if (child != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CoinsHistoryScreen(child: child),
+                ),
+              );
+            }
+          },
+          child: const CoinsBadge(),
+        ),
+        const SizedBox(width: 12),
+      ],
     );
   }
 
@@ -192,10 +209,25 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     return AppBar(
       automaticallyImplyLeading: false,
       toolbarHeight: 80,
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      ),
+      title: Text(title,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      actions: [
+        GestureDetector(
+          onTap: () {
+            final child = context.read<ChildProvider>().activeChild;
+            if (child != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CoinsHistoryScreen(child: child),
+                ),
+              );
+            }
+          },
+          child: const CoinsBadge(),
+        ),
+        const SizedBox(width: 12),
+      ],
     );
   }
 
@@ -244,7 +276,12 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
             },
           ),
         ),
-        Positioned(bottom: 80, right: 16, child: _buildFloatingPet()),
+        if (_currentIndex != 4)
+          Positioned(
+            bottom: 80,
+            right: 16,
+            child: _buildFloatingPet(),
+          ),
       ],
     );
   }

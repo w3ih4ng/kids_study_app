@@ -151,6 +151,13 @@ class QuizService {
         'add_coins',
         params: {'child_id_input': childId, 'coins_input': coinsEarned},
       );
+      // Log transaction
+      await supabase.from('coin_transactions').insert({
+        'child_id': childId,
+        'amount': coinsEarned,
+        'type': 'quiz',
+        'description': 'Quiz completed',
+      });
     }
 
     // Update leaderboard

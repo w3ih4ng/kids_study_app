@@ -37,6 +37,7 @@ class PetService {
     required String childId,
     required String petId,
     required int price,
+    required String petName,
   }) async {
     await supabase.rpc(
       'deduct_coins',
@@ -45,6 +46,13 @@ class PetService {
     await supabase.from('child_pets').insert({
       'child_id': childId,
       'pet_id': petId,
+    });
+    // Log transaction
+    await supabase.from('coin_transactions').insert({
+      'child_id': childId,
+      'amount': -price,
+      'type': 'pet_purchase',
+      'description': 'Bought $petName',
     });
   }
 

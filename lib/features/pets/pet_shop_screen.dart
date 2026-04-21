@@ -98,6 +98,7 @@ class _PetShopScreenState extends State<PetShopScreen>
         childId: child.id,
         petId: pet.id,
         price: pet.price,
+        petName: pet.name, // pass pet name for transaction log
       );
 
       final updatedChild = ChildModel(
@@ -121,10 +122,76 @@ class _PetShopScreenState extends State<PetShopScreen>
     }
   }
 
+  // Active pet bar widget
+  Widget _buildActivePetBar(ChildModel? child) {
+    final activePetId = child?.activePetId;
+    PetModel? activePet;
+
+    if (activePetId != null) {
+      final match = _myPets.where((cp) => cp.petId == activePetId);
+      if (match.isNotEmpty) activePet = match.first.pet;
+    }
+
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.petsColor.withValues(alpha: 0.08),
+        border: Border(
+          bottom: BorderSide(color: cs.outline),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.pets, color: AppTheme.petsColor, size: 16),
+          const SizedBox(width: 8),
+          const Text(
+            'Active pet:',
+            style: TextStyle(fontSize: 13, color: AppTheme.petsColor),
+          ),
+          const SizedBox(width: 8),
+          if (activePet != null) ...[
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: AnimatedPetWidget(
+                imageUrl: activePet.imageUrl,
+                size: 32,
+                animate: true,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              activePet.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.petsColor,
+                fontSize: 13,
+              ),
+            ),
+          ] else
+            Text(
+              'None — buy or set a pet!',
+              style: TextStyle(
+                fontSize: 13,
+                color: cs.onSurface.withValues(alpha: 0.5),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final child = context.watch<ChildProvider>().activeChild;
+
     return Column(
       children: [
+        // Tab bar
         Container(
           color: AppTheme.petsColor,
           child: TabBar(
@@ -138,13 +205,17 @@ class _PetShopScreenState extends State<PetShopScreen>
             ],
           ),
         ),
+
+        // Active pet bar — always visible
+        if (!_isLoading) _buildActivePetBar(child),
+
         Expanded(
           child: _isLoading
               ? const LoadingWidget()
               : TabBarView(
-                  controller: _tabController,
-                  children: [_buildShop(), _buildMyPets()],
-                ),
+            controller: _tabController,
+            children: [_buildShop(), _buildMyPets()],
+          ),
         ),
       ],
     );
@@ -160,108 +231,110 @@ class _PetShopScreenState extends State<PetShopScreen>
 
     final child = context.watch<ChildProvider>().activeChild;
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: _shopPets.length,
-      itemBuilder: (_, i) {
-        final pet = _shopPets[i];
-        final owned = _myPets.any((mp) => mp.petId == pet.id);
-        final canAfford = (child?.coins ?? 0) >= pet.price;
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: GridView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.8,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
+        itemCount: _shopPets.length,
+        itemBuilder: (_, i) {
+          final pet = _shopPets[i];
+          final owned = _myPets.any((mp) => mp.petId == pet.id);
+          final canAfford = (child?.coins ?? 0) >= pet.price;
 
-        return GestureDetector(
-          onTap: owned ? null : () => _buyPet(pet),
-          child: Container(
-            decoration: BoxDecoration(
-              color: owned
-                  ? AppTheme.success.withValues(alpha: 0.1)
-                  : Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
+          return GestureDetector(
+            onTap: owned ? null : () => _buyPet(pet),
+            child: Container(
+              decoration: BoxDecoration(
                 color: owned
-                    ? AppTheme.success
-                    : canAfford
-                    ? AppTheme.petsColor.withValues(alpha: 0.3)
-                    : Theme.of(context).colorScheme.outline,
-                width: owned ? 2 : 1,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedPetWidget(imageUrl: pet.imageUrl, size: 80),
-                const SizedBox(height: 8),
-                Text(
-                  pet.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                    ? AppTheme.success.withValues(alpha: 0.1)
+                    : Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: owned
+                      ? AppTheme.success
+                      : canAfford
+                      ? AppTheme.petsColor.withValues(alpha: 0.3)
+                      : Theme.of(context).colorScheme.outline,
+                  width: owned ? 2 : 1,
                 ),
-                const SizedBox(height: 4),
-                if (owned)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedPetWidget(imageUrl: pet.imageUrl, size: 80),
+                  const SizedBox(height: 8),
+                  Text(
+                    pet.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.success.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Owned ✓',
-                      style: TextStyle(
-                        color: AppTheme.success,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                  ),
+                  const SizedBox(height: 4),
+                  if (owned)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.success.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: canAfford
-                          ? AppTheme.accent.withValues(alpha: 0.15)
-                          : AppTheme.danger.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.monetization_on,
-                          color: canAfford ? AppTheme.accent : AppTheme.danger,
-                          size: 14,
+                      child: const Text(
+                        'Owned ✓',
+                        style: TextStyle(
+                          color: AppTheme.success,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${pet.price}',
-                          style: TextStyle(
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: canAfford
+                            ? AppTheme.accent.withValues(alpha: 0.15)
+                            : AppTheme.danger.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.monetization_on,
                             color: canAfford
                                 ? AppTheme.accent
                                 : AppTheme.danger,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            size: 14,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            '${pet.price}',
+                            style: TextStyle(
+                              color: canAfford
+                                  ? AppTheme.accent
+                                  : AppTheme.danger,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -275,154 +348,151 @@ class _PetShopScreenState extends State<PetShopScreen>
 
     final child = context.watch<ChildProvider>().activeChild;
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _myPets.length,
-      itemBuilder: (_, i) {
-        final childPet = _myPets[i];
-        final pet = childPet.pet;
-        if (pet == null) return const SizedBox();
-        final isActive = child?.activePetId == pet.id;
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+        itemCount: _myPets.length,
+        itemBuilder: (_, i) {
+          final childPet = _myPets[i];
+          final pet = childPet.pet;
+          if (pet == null) return const SizedBox();
+          final isActive = child?.activePetId == pet.id;
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: isActive
-                ? const BorderSide(color: AppTheme.petsColor, width: 2)
-                : BorderSide.none,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                AnimatedPetWidget(
-                  imageUrl: pet.imageUrl,
-                  soundUrl: pet.soundUrl,
-                  size: 80,
-                  animate: isActive,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: isActive
+                  ? const BorderSide(
+                  color: AppTheme.petsColor, width: 2)
+                  : BorderSide.none,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  AnimatedPetWidget(
+                    imageUrl: pet.imageUrl,
+                    soundUrl: pet.soundUrl,
+                    size: 80,
+                    animate: isActive,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              pet.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            if (isActive) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.petsColor
+                                      .withValues(alpha: 0.15),
+                                  borderRadius:
+                                  BorderRadius.circular(10),
+                                ),
+                                child: const Text(
+                                  'Active',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.petsColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (pet.description != null) ...[
+                          const SizedBox(height: 4),
                           Text(
-                            pet.name,
+                            pet.description!,
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              color: AppTheme.textSecondary,
+                              fontSize: 13,
                             ),
                           ),
-                          if (isActive) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.petsColor.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                'Active',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.petsColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
-                      ),
-                      if (pet.description != null) ...[
                         const SizedBox(height: 4),
                         Text(
-                          pet.description!,
-                          style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 13,
+                          isActive
+                              ? '🌟 Your active companion!'
+                              : 'Tap "Set Active" to use this pet',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isActive
+                                ? AppTheme.petsColor
+                                : AppTheme.textSecondary,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 4),
-                      Text(
-                        isActive
-                            ? '🌟 Your active companion!'
-                            : 'Tap "Set Active" to use this pet',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isActive
-                              ? AppTheme.petsColor
-                              : AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (!isActive)
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await PetService.setActivePet(
+                            childId: child!.id,
+                            petId: pet.id,
+                          );
+                          final updatedChild = ChildModel(
+                            id: child.id,
+                            parentId: child.parentId,
+                            nickname: child.nickname,
+                            avatarUrl: child.avatarUrl,
+                            coins: child.coins,
+                            activePetId: pet.id,
+                          );
+                          if (mounted) {
+                            context
+                                .read<ChildProvider>()
+                                .setActiveChild(updatedChild);
+                            AppSnackbar.success(
+                              context,
+                              '${pet.name} is now your active companion!',
+                            );
+                            _load();
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            AppSnackbar.error(
+                                context, 'Failed to set active pet.');
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.petsColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (!isActive)
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await PetService.setActivePet(
-                          childId: child!.id,
-                          petId: pet.id,
-                        );
-                        final updatedChild = ChildModel(
-                          id: child.id,
-                          parentId: child.parentId,
-                          nickname: child.nickname,
-                          avatarUrl: child.avatarUrl,
-                          coins: child.coins,
-                          activePetId: pet.id,
-                        );
-                        if (mounted) {
-                          context.read<ChildProvider>().setActiveChild(
-                            updatedChild,
-                          );
-                          AppSnackbar.success(
-                            context,
-                            '${pet.name} is now your active companion!',
-                          );
-                          _load();
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          AppSnackbar.error(
-                            context,
-                            'Failed to set active pet.',
-                          );
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.petsColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      child: const Text('Set Active',
+                          style: TextStyle(fontSize: 12)),
                     ),
-                    child: const Text(
-                      'Set Active',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
