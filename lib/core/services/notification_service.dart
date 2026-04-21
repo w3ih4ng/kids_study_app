@@ -22,8 +22,7 @@ class NotificationService {
   static const _channelName = 'Kids Study App';
 
   static Future<void> initialize() async {
-    await _messaging.requestPermission(
-        alert: true, badge: true, sound: true);
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
     const androidChannel = AndroidNotificationChannel(
       _channelId,
@@ -32,7 +31,9 @@ class NotificationService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
 
     const initSettings = InitializationSettings(
@@ -40,8 +41,7 @@ class NotificationService {
     );
     await _localNotifications.initialize(initSettings);
 
-    FirebaseMessaging.onBackgroundMessage(
-        firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // Foreground — FCM does NOT auto-show, so we show manually
     FirebaseMessaging.onMessage.listen((message) {
@@ -49,8 +49,7 @@ class NotificationService {
     });
   }
 
-  static Future<void> showLocalNotification(
-      RemoteMessage message) async {
+  static Future<void> showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
 
@@ -77,10 +76,7 @@ class NotificationService {
 
     // Delete any existing row with this exact token
     // (in case it was registered under a different child)
-    await _supabase
-        .from('device_tokens')
-        .delete()
-        .eq('token', token);
+    await _supabase.from('device_tokens').delete().eq('token', token);
 
     // Insert fresh
     await _supabase.from('device_tokens').insert({
@@ -105,9 +101,7 @@ class NotificationService {
     required String body,
   }) async {
     try {
-      final response = await _supabase
-          .from('device_tokens')
-          .select('token');
+      final response = await _supabase.from('device_tokens').select('token');
 
       final tokens = (response as List)
           .map((e) => e['token'] as String)
@@ -135,7 +129,7 @@ class NotificationService {
         body: {'token': token, 'title': title, 'body': body},
         headers: {
           'Authorization':
-          'Bearer ${_supabase.auth.currentSession?.accessToken ?? ''}',
+              'Bearer ${_supabase.auth.currentSession?.accessToken ?? ''}',
         },
       );
     } catch (e) {

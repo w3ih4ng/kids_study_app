@@ -139,9 +139,7 @@ class _PetShopScreenState extends State<PetShopScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppTheme.petsColor.withValues(alpha: 0.08),
-        border: Border(
-          bottom: BorderSide(color: cs.outline),
-        ),
+        border: Border(bottom: BorderSide(color: cs.outline)),
       ),
       child: Row(
         children: [
@@ -213,9 +211,9 @@ class _PetShopScreenState extends State<PetShopScreen>
           child: _isLoading
               ? const LoadingWidget()
               : TabBarView(
-            controller: _tabController,
-            children: [_buildShop(), _buildMyPets()],
-          ),
+                  controller: _tabController,
+                  children: [_buildShop(), _buildMyPets()],
+                ),
         ),
       ],
     );
@@ -281,7 +279,9 @@ class _PetShopScreenState extends State<PetShopScreen>
                   if (owned)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.success.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
@@ -298,7 +298,9 @@ class _PetShopScreenState extends State<PetShopScreen>
                   else
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: canAfford
                             ? AppTheme.accent.withValues(alpha: 0.15)
@@ -365,8 +367,7 @@ class _PetShopScreenState extends State<PetShopScreen>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: isActive
-                  ? const BorderSide(
-                  color: AppTheme.petsColor, width: 2)
+                  ? const BorderSide(color: AppTheme.petsColor, width: 2)
                   : BorderSide.none,
             ),
             child: Padding(
@@ -397,12 +398,14 @@ class _PetShopScreenState extends State<PetShopScreen>
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.petsColor
-                                      .withValues(alpha: 0.15),
-                                  borderRadius:
-                                  BorderRadius.circular(10),
+                                  color: AppTheme.petsColor.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Text(
                                   'Active',
@@ -459,9 +462,9 @@ class _PetShopScreenState extends State<PetShopScreen>
                             activePetId: pet.id,
                           );
                           if (mounted) {
-                            context
-                                .read<ChildProvider>()
-                                .setActiveChild(updatedChild);
+                            context.read<ChildProvider>().setActiveChild(
+                              updatedChild,
+                            );
                             AppSnackbar.success(
                               context,
                               '${pet.name} is now your active companion!',
@@ -471,7 +474,9 @@ class _PetShopScreenState extends State<PetShopScreen>
                         } catch (e) {
                           if (mounted) {
                             AppSnackbar.error(
-                                context, 'Failed to set active pet.');
+                              context,
+                              'Failed to set active pet.',
+                            );
                           }
                         }
                       },
@@ -479,13 +484,17 @@ class _PetShopScreenState extends State<PetShopScreen>
                         backgroundColor: AppTheme.petsColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text('Set Active',
-                          style: TextStyle(fontSize: 12)),
+                      child: const Text(
+                        'Set Active',
+                        style: TextStyle(fontSize: 12),
+                      ),
                     ),
                 ],
               ),

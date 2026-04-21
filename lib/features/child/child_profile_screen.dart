@@ -44,8 +44,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             const SizedBox(height: 16),
             const Text(
               'Change Profile Picture',
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             ListTile(
@@ -59,12 +58,10 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             ListTile(
               leading: const CircleAvatar(
                 backgroundColor: AppTheme.secondary,
-                child:
-                Icon(Icons.photo_library, color: Colors.white),
+                child: Icon(Icons.photo_library, color: Colors.white),
               ),
               title: const Text('Choose from Gallery'),
-              onTap: () =>
-                  Navigator.pop(context, ImageSource.gallery),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             const SizedBox(height: 8),
           ],
@@ -92,10 +89,10 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
       await Supabase.instance.client.storage
           .from('avatars')
           .uploadBinary(
-        fileName,
-        bytes,
-        fileOptions: const FileOptions(upsert: true),
-      );
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(upsert: true),
+          );
 
       final url = Supabase.instance.client.storage
           .from('avatars')
@@ -132,8 +129,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) =>
-      const Center(child: CircularProgressIndicator()),
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
     try {
       final pin = await ChildService.getParentPin();
@@ -146,9 +142,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             correctPin: pin,
             onSuccess: () => Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                  builder: (_) => const ParentDashboardScreen()),
-                  (route) => false,
+              MaterialPageRoute(builder: (_) => const ParentDashboardScreen()),
+              (route) => false,
             ),
           ),
         ),
@@ -156,8 +151,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        AppSnackbar.error(
-            context, 'Failed to load PIN. Please try again.');
+        AppSnackbar.error(context, 'Failed to load PIN. Please try again.');
       }
     }
   }
@@ -185,8 +179,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                   radius: 60,
                 ),
                 GestureDetector(
-                  onTap:
-                  _isUploading ? null : _changeProfilePicture,
+                  onTap: _isUploading ? null : _changeProfilePicture,
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
@@ -195,18 +188,18 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                     ),
                     child: _isUploading
                         ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                   ),
                 ),
               ],
@@ -216,8 +209,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             // Nickname
             Text(
               child?.nickname ?? '',
-              style: const TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
 
@@ -228,8 +220,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          CoinsHistoryScreen(child: child),
+                      builder: (_) => CoinsHistoryScreen(child: child),
                     ),
                   );
                 }
@@ -258,8 +249,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                         Text(
                           'My Coins',
                           style: TextStyle(
-                              color: cs.onSurface
-                                  .withValues(alpha: 0.6)),
+                            color: cs.onSurface.withValues(alpha: 0.6),
+                          ),
                         ),
                         Text(
                           '${child?.coins ?? 0}',
@@ -272,10 +263,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                       ],
                     ),
                     const Spacer(),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: AppTheme.accent,
-                    ),
+                    const Icon(Icons.chevron_right, color: AppTheme.accent),
                   ],
                 ),
               ),
@@ -321,8 +309,9 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                           message: 'Copy friend code',
                           child: InkWell(
                             onTap: () {
-                              Clipboard.setData(ClipboardData(
-                                  text: child!.childCode!));
+                              Clipboard.setData(
+                                ClipboardData(text: child!.childCode!),
+                              );
                               AppSnackbar.success(
                                 context,
                                 'Code "${child.childCode}" copied!',
@@ -332,10 +321,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppTheme.primary
-                                    .withValues(alpha: 0.1),
-                                borderRadius:
-                                BorderRadius.circular(8),
+                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
                                 Icons.copy_rounded,

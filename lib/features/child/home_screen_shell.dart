@@ -209,8 +209,10 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     return AppBar(
       automaticallyImplyLeading: false,
       toolbarHeight: 80,
-      title: Text(title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
       actions: [
         GestureDetector(
           onTap: () {
@@ -277,11 +279,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
           ),
         ),
         if (_currentIndex != 4)
-          Positioned(
-            bottom: 80,
-            right: 16,
-            child: _buildFloatingPet(),
-          ),
+          Positioned(bottom: 80, right: 16, child: _buildFloatingPet()),
       ],
     );
   }

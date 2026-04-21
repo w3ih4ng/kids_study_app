@@ -121,7 +121,7 @@ class _QuizScreenState extends State<QuizScreen> {
         // Refresh coins badge
         final updatedChildren = await ChildService.getChildren();
         final updatedChild = updatedChildren.firstWhere(
-              (c) => c.id == child.id,
+          (c) => c.id == child.id,
           orElse: () => child,
         );
         if (mounted) {

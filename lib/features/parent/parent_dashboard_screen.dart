@@ -177,9 +177,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               context.read<ChildProvider>().setActiveChild(current);
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const ChildDashboardScreen()),
-                    (route) => false,
+                MaterialPageRoute(builder: (_) => const ChildDashboardScreen()),
+                (route) => false,
               );
             }
           },
@@ -373,7 +372,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             ),
             const SizedBox(height: 32),
 
-// Logout button — red, full width
+            // Logout button — red, full width
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -390,8 +389,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Log Out',
-                              style: TextStyle(color: AppTheme.danger)),
+                          child: const Text(
+                            'Log Out',
+                            style: TextStyle(color: AppTheme.danger),
+                          ),
                         ),
                       ],
                     ),
@@ -402,22 +403,26 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
-                            (route) => false,
+                        (route) => false,
                       );
                     }
                   }
                 },
                 icon: const Icon(Icons.logout, color: AppTheme.danger),
-                label: const Text('Log Out',
-                    style: TextStyle(
-                        color: AppTheme.danger,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15)),
+                label: const Text(
+                  'Log Out',
+                  style: TextStyle(
+                    color: AppTheme.danger,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppTheme.danger),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),

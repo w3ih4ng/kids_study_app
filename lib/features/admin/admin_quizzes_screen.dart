@@ -445,37 +445,49 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                           child: Row(
                             children: [
                               // Icon
-                              Builder(builder: (context) {
-                                // Use quiz thumbnail, or fall back to linked lesson thumbnail
-                                final thumbUrl = quiz.thumbnailUrl ??
-                                    (_lessons
-                                        .where((l) => l.id == quiz.lessonId)
-                                        .firstOrNull
-                                        ?.thumbnailUrl);
+                              Builder(
+                                builder: (context) {
+                                  // Use quiz thumbnail, or fall back to linked lesson thumbnail
+                                  final thumbUrl =
+                                      quiz.thumbnailUrl ??
+                                      (_lessons
+                                          .where((l) => l.id == quiz.lessonId)
+                                          .firstOrNull
+                                          ?.thumbnailUrl);
 
-                                return thumbUrl != null
-                                    ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Image.network(
-                                    thumbUrl,
-                                    width: 48,
-                                    height: 48,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => CircleAvatar(
-                                      backgroundColor:
-                                      AppTheme.quizzesColor.withValues(alpha: 0.15),
-                                      child: const Icon(Icons.quiz,
-                                          color: AppTheme.quizzesColor),
-                                    ),
-                                  ),
-                                )
-                                    : CircleAvatar(
-                                  backgroundColor:
-                                  AppTheme.quizzesColor.withValues(alpha: 0.15),
-                                  child: const Icon(Icons.quiz,
-                                      color: AppTheme.quizzesColor),
-                                );
-                              }),
+                                  return thumbUrl != null
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                          child: Image.network(
+                                            thumbUrl,
+                                            width: 48,
+                                            height: 48,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                CircleAvatar(
+                                                  backgroundColor: AppTheme
+                                                      .quizzesColor
+                                                      .withValues(alpha: 0.15),
+                                                  child: const Icon(
+                                                    Icons.quiz,
+                                                    color:
+                                                        AppTheme.quizzesColor,
+                                                  ),
+                                                ),
+                                          ),
+                                        )
+                                      : CircleAvatar(
+                                          backgroundColor: AppTheme.quizzesColor
+                                              .withValues(alpha: 0.15),
+                                          child: const Icon(
+                                            Icons.quiz,
+                                            color: AppTheme.quizzesColor,
+                                          ),
+                                        );
+                                },
+                              ),
                               const SizedBox(width: 12),
 
                               // Title + subject badge
