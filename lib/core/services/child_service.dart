@@ -45,10 +45,7 @@ class ChildService {
 
   static Future<void> updatePin(String newPin) async {
     final userId = supabase.auth.currentUser!.id;
-    await supabase
-        .from('profiles')
-        .update({'pin': newPin})
-        .eq('id', userId);
+    await supabase.from('profiles').update({'pin': newPin}).eq('id', userId);
   }
 
   static Future<void> saveLastActiveChild(String childId) async {

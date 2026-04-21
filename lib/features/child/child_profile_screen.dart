@@ -41,8 +41,10 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Change Profile Picture',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              'Change Profile Picture',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             ListTile(
               leading: const CircleAvatar(
@@ -85,8 +87,11 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
 
       await Supabase.instance.client.storage
           .from('avatars')
-          .uploadBinary(fileName, bytes,
-          fileOptions: const FileOptions(upsert: true));
+          .uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(upsert: true),
+          );
 
       final url = Supabase.instance.client.storage
           .from('avatars')
@@ -97,7 +102,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
 
       await Supabase.instance.client
           .from('children')
-          .update({'avatar_url': urlWithCacheBust}).eq('id', child.id);
+          .update({'avatar_url': urlWithCacheBust})
+          .eq('id', child.id);
 
       final children = await ChildService.getChildren();
       final updated = children.firstWhere((c) => c.id == child.id);
@@ -109,7 +115,9 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
     } catch (e) {
       if (mounted) {
         AppSnackbar.error(
-            context, 'Failed to upload picture. Please try again.');
+          context,
+          'Failed to upload picture. Please try again.',
+        );
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -133,9 +141,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             correctPin: pin,
             onSuccess: () => Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                  builder: (_) => const ParentDashboardScreen()),
-                  (route) => false,
+              MaterialPageRoute(builder: (_) => const ParentDashboardScreen()),
+              (route) => false,
             ),
           ),
         ),
@@ -177,12 +184,18 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                     ),
                     child: _isUploading
                         ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
-                        : const Icon(Icons.camera_alt,
-                        color: Colors.white, size: 18),
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                   ),
                 ),
               ],
@@ -190,8 +203,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             const SizedBox(height: 16),
             Text(
               child?.nickname ?? '',
-              style: const TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             // Coins card
@@ -199,28 +211,35 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppTheme.accent.withValues(alpha:0.1),
+                color: AppTheme.accent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.accent.withValues(alpha:0.3)),
+                border: Border.all(
+                  color: AppTheme.accent.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.monetization_on,
-                      color: AppTheme.accent, size: 36),
+                  const Icon(
+                    Icons.monetization_on,
+                    color: AppTheme.accent,
+                    size: 36,
+                  ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('My Coins',
-                          style:
-                          TextStyle(color: AppTheme.textSecondary)),
+                      const Text(
+                        'My Coins',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
                       Text(
                         '${child?.coins ?? 0}',
                         style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.accent),
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.accent,
+                        ),
                       ),
                     ],
                   ),
@@ -233,16 +252,21 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha:0.05),
+                color: AppTheme.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
-                border:
-                Border.all(color: AppTheme.primary.withValues(alpha:0.2)),
+                border: Border.all(
+                  color: AppTheme.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 children: [
-                  const Text('My Friend Code',
-                      style: TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 13)),
+                  const Text(
+                    'My Friend Code',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -265,15 +289,16 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                               Clipboard.setData(
                                 ClipboardData(text: child!.childCode!),
                               );
-                              AppSnackbar.success(context,
-                                  'Code "${child.childCode}" copied!');
+                              AppSnackbar.success(
+                                context,
+                                'Code "${child.childCode}" copied!',
+                              );
                             },
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color:
-                                AppTheme.primary.withValues(alpha:0.1),
+                                color: AppTheme.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -291,7 +316,9 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                   const Text(
                     'Share this code with friends to connect!',
                     style: TextStyle(
-                        color: AppTheme.textSecondary, fontSize: 11),
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -310,7 +337,8 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                   side: const BorderSide(color: AppTheme.primary),
                   foregroundColor: AppTheme.primary,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),

@@ -24,8 +24,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   static const int _minLength = 8;
   static final RegExp _hasLetter = RegExp(r'[A-Za-z]');
   static final RegExp _hasDigit = RegExp(r'[0-9]');
-  static final RegExp _hasSymbol =
-  RegExp(r'[!@#\$%^&*()_+\-=\[\]{}|;:,.<>?/\\~`"' "'" r']');
+  static final RegExp _hasSymbol = RegExp(
+    r'[!@#\$%^&*()_+\-=\[\]{}|;:,.<>?/\\~`"'
+    "'"
+    r']',
+  );
 
   String? _validatePassword(String password) {
     if (password.length < _minLength) {
@@ -55,21 +58,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Color get _strengthColor {
     switch (_strengthScore) {
-      case 1: return Colors.red;
-      case 2: return Colors.orange;
-      case 3: return Colors.amber;
-      case 4: return Colors.green;
-      default: return Colors.grey.shade300;
+      case 1:
+        return Colors.red;
+      case 2:
+        return Colors.orange;
+      case 3:
+        return Colors.amber;
+      case 4:
+        return Colors.green;
+      default:
+        return Colors.grey.shade300;
     }
   }
 
   String get _strengthLabel {
     switch (_strengthScore) {
-      case 1: return 'Weak';
-      case 2: return 'Fair';
-      case 3: return 'Good';
-      case 4: return 'Strong ✓';
-      default: return '';
+      case 1:
+        return 'Weak';
+      case 2:
+        return 'Fair';
+      case 3:
+        return 'Good';
+      case 4:
+        return 'Strong ✓';
+      default:
+        return '';
     }
   }
 
@@ -99,20 +112,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
     try {
-      await AuthService.register(
-        _emailController.text.trim(),
-        password,
-      );
+      await AuthService.register(_emailController.text.trim(), password);
 
       final userId = Supabase.instance.client.auth.currentUser!.id;
       await Supabase.instance.client
           .from('profiles')
-          .update({'pin': _pinController.text}).eq('id', userId);
+          .update({'pin': _pinController.text})
+          .eq('id', userId);
 
       if (mounted) {
         AppSnackbar.success(context, 'Account created! Please log in.');
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const LoginScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
       }
     } on AuthException catch (e) {
       if (mounted) AppSnackbar.error(context, e.message);
@@ -135,19 +148,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Register as Parent',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const Text(
+                'Register as Parent',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
-              const Text('Create an account to manage your children profiles.',
-                  style: TextStyle(color: Colors.grey)),
+              const Text(
+                'Create an account to manage your children profiles.',
+                style: TextStyle(color: Colors.grey),
+              ),
               const SizedBox(height: 32),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email)),
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -159,13 +177,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword
-                        ? Icons.visibility_off
-                        : Icons.visibility),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                  helperText: 'Min 8 chars · letter · number · symbol (e.g. @#!)',
+                  helperText:
+                      'Min 8 chars · letter · number · symbol (e.g. @#!)',
                   helperMaxLines: 2,
                 ),
               ),
@@ -188,9 +209,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Text(
                       _strengthLabel,
                       style: TextStyle(
-                          fontSize: 12,
-                          color: _strengthColor,
-                          fontWeight: FontWeight.bold),
+                        fontSize: 12,
+                        color: _strengthColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -204,20 +226,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirm
-                        ? Icons.visibility_off
-                        : Icons.visibility),
+                    icon: Icon(
+                      _obscureConfirm ? Icons.visibility_off : Icons.visibility,
+                    ),
                     onPressed: () =>
                         setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text('Set Your Parent PIN',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                'Set Your Parent PIN',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 4),
-              const Text('You will need this PIN to access the parent dashboard.',
-                  style: TextStyle(color: Colors.grey, fontSize: 13)),
+              const Text(
+                'You will need this PIN to access the parent dashboard.',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: _pinController,
@@ -225,9 +251,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 obscureText: true,
                 maxLength: 4,
                 decoration: const InputDecoration(
-                    labelText: '4-digit PIN',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.pin)),
+                  labelText: '4-digit PIN',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.pin),
+                ),
               ),
               const SizedBox(height: 24),
               ElevatedButton(

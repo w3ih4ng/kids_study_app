@@ -40,7 +40,11 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
   Future<void> _load() async {
     setState(() => _isLoading = true);
     final lessons = await LessonService.getLessons();
-    if (mounted) setState(() { _lessons = lessons; _isLoading = false; });
+    if (mounted)
+      setState(() {
+        _lessons = lessons;
+        _isLoading = false;
+      });
   }
 
   void _resetForm() {
@@ -71,11 +75,14 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) => StatefulBuilder(
         builder: (context, setModalState) => Padding(
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 20,
+            left: 20,
+            right: 20,
+            top: 20,
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: SingleChildScrollView(
@@ -83,44 +90,51 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(lesson == null ? 'Add New Lesson' : 'Edit Lesson',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  lesson == null ? 'Add New Lesson' : 'Edit Lesson',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _titleController,
                   decoration: const InputDecoration(
-                      labelText: 'Lesson Title',
-                      border: OutlineInputBorder()),
+                    labelText: 'Lesson Title',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _descController,
                   maxLines: 3,
                   decoration: const InputDecoration(
-                      labelText: 'Description',
-                      border: OutlineInputBorder()),
+                    labelText: 'Description',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 // Subject dropdown
                 DropdownButtonFormField<String>(
                   initialValue: _selectedSubject,
                   decoration: const InputDecoration(
-                      labelText: 'Subject',
-                      border: OutlineInputBorder()),
+                    labelText: 'Subject',
+                    border: OutlineInputBorder(),
+                  ),
                   items: ['Math', 'English']
                       .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                       .toList(),
-                  onChanged: (v) =>
-                      setModalState(() => _selectedSubject = v!),
+                  onChanged: (v) => setModalState(() => _selectedSubject = v!),
                 ),
                 const SizedBox(height: 12),
                 // Difficulty dropdown
                 DropdownButtonFormField<String>(
                   initialValue: _selectedDifficulty,
                   decoration: const InputDecoration(
-                      labelText: 'Difficulty',
-                      border: OutlineInputBorder()),
+                    labelText: 'Difficulty',
+                    border: OutlineInputBorder(),
+                  ),
                   items: ['Easy', 'Medium', 'Hard']
                       .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                       .toList(),
@@ -131,10 +145,16 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 DropdownButtonFormField<String>(
                   initialValue: _selectedAgeLevel,
                   decoration: const InputDecoration(
-                      labelText: 'Age Level',
-                      border: OutlineInputBorder()),
+                    labelText: 'Age Level',
+                    border: OutlineInputBorder(),
+                  ),
                   items: ['4+', '5+', '6+', '7+', '8+']
-                      .map((a) => DropdownMenuItem(value: a, child: Text('$a years old')))
+                      .map(
+                        (a) => DropdownMenuItem(
+                          value: a,
+                          child: Text('$a years old'),
+                        ),
+                      )
                       .toList(),
                   onChanged: (v) => setModalState(() => _selectedAgeLevel = v!),
                 ),
@@ -143,16 +163,20 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 DropdownButtonFormField<String>(
                   initialValue: _selectedType,
                   decoration: const InputDecoration(
-                      labelText: 'Content Type',
-                      border: OutlineInputBorder()),
+                    labelText: 'Content Type',
+                    border: OutlineInputBorder(),
+                  ),
                   items: [
                     const DropdownMenuItem(
-                        value: 'youtube', child: Text('YouTube Video')),
+                      value: 'youtube',
+                      child: Text('YouTube Video'),
+                    ),
                     const DropdownMenuItem(
-                        value: 'image', child: Text('Image')),
+                      value: 'image',
+                      child: Text('Image'),
+                    ),
                   ],
-                  onChanged: (v) =>
-                      setModalState(() => _selectedType = v!),
+                  onChanged: (v) => setModalState(() => _selectedType = v!),
                 ),
                 const SizedBox(height: 12),
                 if (_selectedType == 'youtube')
@@ -166,7 +190,8 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                     ),
                   )
                 else ...[
-                  if (_uploadedImageUrl != null || _urlController.text.isNotEmpty) ...[
+                  if (_uploadedImageUrl != null ||
+                      _urlController.text.isNotEmpty) ...[
                     GestureDetector(
                       onTap: () {
                         // Full screen preview
@@ -199,8 +224,11 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                                         color: Colors.black54,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(Icons.close,
-                                          color: Colors.white, size: 24),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -230,7 +258,9 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                           Container(
                             margin: const EdgeInsets.all(8),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.black54,
                               borderRadius: BorderRadius.circular(20),
@@ -238,11 +268,19 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.fullscreen, color: Colors.white, size: 14),
+                                Icon(
+                                  Icons.fullscreen,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
                                 SizedBox(width: 4),
-                                Text('Tap to preview',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 11)),
+                                Text(
+                                  'Tap to preview',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -257,20 +295,24 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                         : () => _pickAndUploadImage(setModalState),
                     icon: _isUploading
                         ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Icon(Icons.upload_file),
-                    label: Text(_isUploading
-                        ? 'Uploading...'
-                        : _uploadedImageUrl != null || _urlController.text.isNotEmpty
-                        ? 'Change Image'
-                        : 'Upload Image'),
+                    label: Text(
+                      _isUploading
+                          ? 'Uploading...'
+                          : _uploadedImageUrl != null ||
+                                _urlController.text.isNotEmpty
+                          ? 'Change Image'
+                          : 'Upload Image',
+                    ),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ],
@@ -278,7 +320,10 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     if (_titleController.text.trim().isEmpty) {
-                      AppSnackbar.warning(context, 'Please enter a lesson title.');
+                      AppSnackbar.warning(
+                        context,
+                        'Please enter a lesson title.',
+                      );
                       return;
                     }
                     try {
@@ -296,10 +341,14 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                         _load();
                         await NotificationService.notifyAll(
                           title: '📚 New Lesson Available!',
-                          body: '${_titleController.text.trim()} has been added!',
+                          body:
+                              '${_titleController.text.trim()} has been added!',
                         );
                         if (context.mounted) {
-                          AppSnackbar.success(context, 'Lesson created successfully!');
+                          AppSnackbar.success(
+                            context,
+                            'Lesson created successfully!',
+                          );
                         }
                       } else {
                         await LessonService.updateLesson(lesson.id, {
@@ -314,7 +363,10 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
                         if (context.mounted) Navigator.pop(context);
                         _load();
                         if (context.mounted) {
-                          AppSnackbar.success(context, 'Lesson updated successfully!');
+                          AppSnackbar.success(
+                            context,
+                            'Lesson updated successfully!',
+                          );
                         }
                       }
                     } catch (e) {
@@ -346,12 +398,16 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
         content: Text('Delete "${lesson.title}"? This cannot be undone.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete',
-                  style: TextStyle(color: AppTheme.danger))),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppTheme.danger),
+            ),
+          ),
         ],
       ),
     );
@@ -381,8 +437,10 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            const Text('Select Image',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              'Select Image',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             ListTile(
               leading: const CircleAvatar(
@@ -419,13 +477,15 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
     setModalState(() => _isUploading = true);
     try {
       final bytes = await picked.readAsBytes();
-      final fileName =
-          'lesson_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName = 'lesson_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       await Supabase.instance.client.storage
           .from('lessons')
-          .uploadBinary(fileName, bytes,
-          fileOptions: const FileOptions(upsert: true));
+          .uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(upsert: true),
+          );
 
       final url = Supabase.instance.client.storage
           .from('lessons')
@@ -441,8 +501,9 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
     } catch (e) {
       setModalState(() => _isUploading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Upload failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
       }
       return null;
     }
@@ -456,57 +517,60 @@ class _AdminLessonsScreenState extends State<AdminLessonsScreen> {
           ? const LoadingWidget()
           : _lessons.isEmpty
           ? EmptyStateWidget(
-        message: 'No lessons yet.\nTap + to add one.',
-        icon: Icons.play_lesson_outlined,
-        actionLabel: 'Add Lesson',
-        onAction: () => _showForm(),
-      )
+              message: 'No lessons yet.\nTap + to add one.',
+              icon: Icons.play_lesson_outlined,
+              actionLabel: 'Add Lesson',
+              onAction: () => _showForm(),
+            )
           : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _lessons.length,
-        itemBuilder: (_, i) {
-          final lesson = _lessons[i];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 10),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor:
-                lesson.subject == 'Math'
-                    ? AppTheme.lessonsColor.withValues(alpha:0.2)
-                    : AppTheme.quizzesColor.withValues(alpha:0.2),
-                child: Icon(
-                  lesson.type == 'youtube'
-                      ? Icons.play_circle
-                      : Icons.image,
-                  color: lesson.subject == 'Math'
-                      ? AppTheme.lessonsColor
-                      : AppTheme.quizzesColor,
-                ),
-              ),
-              title: Text(lesson.title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold)),
-              subtitle: Text(
-                  '${lesson.subject} · ${lesson.difficulty}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit,
-                        color: AppTheme.textSecondary),
-                    onPressed: () => _showForm(lesson: lesson),
+              padding: const EdgeInsets.all(16),
+              itemCount: _lessons.length,
+              itemBuilder: (_, i) {
+                final lesson = _lessons[i];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: lesson.subject == 'Math'
+                          ? AppTheme.lessonsColor.withValues(alpha: 0.2)
+                          : AppTheme.quizzesColor.withValues(alpha: 0.2),
+                      child: Icon(
+                        lesson.type == 'youtube'
+                            ? Icons.play_circle
+                            : Icons.image,
+                        color: lesson.subject == 'Math'
+                            ? AppTheme.lessonsColor
+                            : AppTheme.quizzesColor,
+                      ),
+                    ),
+                    title: Text(
+                      lesson.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text('${lesson.subject} · ${lesson.difficulty}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.edit,
+                            color: AppTheme.textSecondary,
+                          ),
+                          onPressed: () => _showForm(lesson: lesson),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: AppTheme.danger,
+                          ),
+                          onPressed: () => _delete(lesson),
+                        ),
+                      ],
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete,
-                        color: AppTheme.danger),
-                    onPressed: () => _delete(lesson),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showForm(),
         backgroundColor: AppTheme.primary,

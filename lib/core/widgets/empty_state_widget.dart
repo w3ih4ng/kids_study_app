@@ -17,14 +17,14 @@ class EmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Uses theme's color — adapts to light/dark automatically
-    final secondaryColor = Theme.of(context).textTheme.bodySmall?.color
-        ?? Colors.grey;
+    final secondaryColor =
+        Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 72, color: secondaryColor.withValues(alpha:0.4)),
+          Icon(icon, size: 72, color: secondaryColor.withValues(alpha: 0.4)),
           const SizedBox(height: 16),
           Text(
             message,
@@ -33,11 +33,8 @@ class EmptyStateWidget extends StatelessWidget {
           ),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: onAction,
-              child: Text(actionLabel!),
-            ),
-          ]
+            ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
+          ],
         ],
       ),
     );

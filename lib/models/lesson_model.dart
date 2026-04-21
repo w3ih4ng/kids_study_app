@@ -28,9 +28,7 @@ class LessonModel {
       String? videoId;
       if (uri != null) {
         if (uri.host.contains('youtu.be')) {
-          videoId = uri.pathSegments.isNotEmpty
-              ? uri.pathSegments.first
-              : null;
+          videoId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
         } else {
           videoId = uri.queryParameters['v'];
         }

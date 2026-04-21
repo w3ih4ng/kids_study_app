@@ -7,8 +7,8 @@ class LoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondaryColor = Theme.of(context).textTheme.bodySmall?.color
-        ?? Colors.grey;
+    final secondaryColor =
+        Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey;
 
     return Center(
       child: Column(
@@ -18,7 +18,7 @@ class LoadingWidget extends StatelessWidget {
           if (message != null) ...[
             const SizedBox(height: 16),
             Text(message!, style: TextStyle(color: secondaryColor)),
-          ]
+          ],
         ],
       ),
     );

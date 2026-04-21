@@ -47,24 +47,24 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
     final rankAll = await LeaderboardService.getChildRank(widget.friend.id);
 
     // Load Math subject rank
-    final mathBoard =
-    await LeaderboardService.getLeaderboardBySubject(subject: 'Math');
-    final mathIdx =
-    mathBoard.indexWhere((e) => e.childId == widget.friend.id);
+    final mathBoard = await LeaderboardService.getLeaderboardBySubject(
+      subject: 'Math',
+    );
+    final mathIdx = mathBoard.indexWhere((e) => e.childId == widget.friend.id);
 
     // Load English subject rank
-    final englishBoard =
-    await LeaderboardService.getLeaderboardBySubject(subject: 'English');
-    final englishIdx =
-    englishBoard.indexWhere((e) => e.childId == widget.friend.id);
+    final englishBoard = await LeaderboardService.getLeaderboardBySubject(
+      subject: 'English',
+    );
+    final englishIdx = englishBoard.indexWhere(
+      (e) => e.childId == widget.friend.id,
+    );
 
     if (mounted) {
       setState(() {
         _statsAll = stats;
-        _statsMath =
-        mathIdx != -1 ? mathBoard[mathIdx] : null;
-        _statsEnglish =
-        englishIdx != -1 ? englishBoard[englishIdx] : null;
+        _statsMath = mathIdx != -1 ? mathBoard[mathIdx] : null;
+        _statsEnglish = englishIdx != -1 ? englishBoard[englishIdx] : null;
         _rankAll = rankAll;
         _rankMath = mathIdx != -1 ? mathIdx + 1 : 0;
         _rankEnglish = englishIdx != -1 ? englishIdx + 1 : 0;
@@ -122,168 +122,171 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
     final friend = widget.friend;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(friend.nickname),
-      ),
+      appBar: AppBar(title: Text(friend.nickname)),
       body: _isLoading
           ? const LoadingWidget()
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 16),
-
-            // ── Avatar ──────────────────────────────────
-            ChildAvatar(
-              nickname: friend.nickname,
-              avatarUrl: friend.avatarUrl,
-              radius: 60,
-            ),
-            const SizedBox(height: 16),
-
-            // ── Nickname ────────────────────────────────
-            Text(
-              friend.nickname,
-              style: const TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-
-            // ── Friend Code card with copy shortcut ─────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha:0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: AppTheme.primary.withValues(alpha:0.2)),
-              ),
+              padding: const EdgeInsets.all(24),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Friend Code',
-                    style: TextStyle(
-                        color: AppTheme.textSecondary, fontSize: 13),
+                  const SizedBox(height: 16),
+
+                  // ── Avatar ──────────────────────────────────
+                  ChildAvatar(
+                    nickname: friend.nickname,
+                    avatarUrl: friend.avatarUrl,
+                    radius: 60,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        friend.childCode ?? '--------',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 4,
-                          color: AppTheme.primary,
-                        ),
+                  const SizedBox(height: 16),
+
+                  // ── Nickname ────────────────────────────────
+                  Text(
+                    friend.nickname,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Friend Code card with copy shortcut ─────
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.primary.withValues(alpha: 0.2),
                       ),
-                      const SizedBox(width: 10),
-                      // Copy shortcut button
-                      Tooltip(
-                        message: 'Copy friend code',
-                        child: InkWell(
-                          onTap: _copyFriendCode,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color:
-                              AppTheme.primary.withValues(alpha:0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.copy_rounded,
-                              size: 18,
-                              color: AppTheme.primary,
-                            ),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Friend Code',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              friend.childCode ?? '--------',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 4,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            // Copy shortcut button
+                            Tooltip(
+                              message: 'Copy friend code',
+                              child: InkWell(
+                                onTap: _copyFriendCode,
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.copy_rounded,
+                                    size: 18,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
+                  const SizedBox(height: 28),
 
-            // ── Leaderboard section header ───────────────
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Leaderboard Ranking',
-                style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // ── Subject filter chips ─────────────────────
-            Row(
-              children: ['All', 'Math', 'English'].map((subject) {
-                final isSelected = _selectedFilter == subject;
-                final color = subject == 'Math'
-                    ? AppTheme.lessonsColor
-                    : subject == 'English'
-                    ? AppTheme.quizzesColor
-                    : AppTheme.primary;
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedFilter = subject),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? color
-                            : color.withValues(alpha:0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected
-                              ? color
-                              : color.withValues(alpha:0.3),
-                        ),
-                      ),
-                      child: Text(
-                        subject,
-                        style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : color,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
+                  // ── Leaderboard section header ───────────────
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Leaderboard Ranking',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-            // ── Rank + stats card ────────────────────────
-            _currentStats == null
-                ? _buildNoDataCard()
-                : _buildRankCard(
-              stats: _currentStats!,
-              rank: _currentRank,
+                  // ── Subject filter chips ─────────────────────
+                  Row(
+                    children: ['All', 'Math', 'English'].map((subject) {
+                      final isSelected = _selectedFilter == subject;
+                      final color = subject == 'Math'
+                          ? AppTheme.lessonsColor
+                          : subject == 'English'
+                          ? AppTheme.quizzesColor
+                          : AppTheme.primary;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedFilter = subject),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? color
+                                  : color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSelected
+                                    ? color
+                                    : color.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Text(
+                              subject,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : color,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── Rank + stats card ────────────────────────
+                  _currentStats == null
+                      ? _buildNoDataCard()
+                      : _buildRankCard(
+                          stats: _currentStats!,
+                          rank: _currentRank,
+                        ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildRankCard({
-    required LeaderboardModel stats,
-    required int rank,
-  }) {
+  Widget _buildRankCard({required LeaderboardModel stats, required int rank}) {
     return Column(
       children: [
         // Gradient rank banner
@@ -318,14 +321,17 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
                           ? '${widget.friend.nickname} is #1! 🎉'
                           : 'Rank #$rank',
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       '${stats.score} total points',
                       style: const TextStyle(
-                          color: Colors.white70, fontSize: 14),
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -366,50 +372,55 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.border.withValues(alpha:0.4),
+        color: AppTheme.border.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
-          const Icon(Icons.leaderboard_outlined,
-              size: 48, color: AppTheme.textSecondary),
+          const Icon(
+            Icons.leaderboard_outlined,
+            size: 48,
+            color: AppTheme.textSecondary,
+          ),
           const SizedBox(height: 12),
           Text(
             '${widget.friend.nickname} hasn\'t completed any'
-                '${_selectedFilter == 'All' ? '' : ' $_selectedFilter'}'
-                ' quizzes yet.',
+            '${_selectedFilter == 'All' ? '' : ' $_selectedFilter'}'
+            ' quizzes yet.',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                color: AppTheme.textSecondary, fontSize: 14),
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
           ),
         ],
       ),
     );
   }
 
-  Widget _miniStatCard(
-      String value, String label, IconData icon, Color color) {
+  Widget _miniStatCard(String value, String label, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha:0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Icon(icon, color: color, size: 26),
           const SizedBox(height: 8),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 11)),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+          ),
         ],
       ),
     );

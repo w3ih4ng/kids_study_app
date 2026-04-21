@@ -26,7 +26,9 @@ class _PinScreenState extends State<PinScreen> {
 
   void _onDelete() {
     if (_enteredPin.isNotEmpty) {
-      setState(() => _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1));
+      setState(
+        () => _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1),
+      );
     }
   }
 
@@ -35,7 +37,8 @@ class _PinScreenState extends State<PinScreen> {
       widget.onSuccess();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Incorrect PIN. Try again.')));
+        const SnackBar(content: Text('Incorrect PIN. Try again.')),
+      );
       setState(() => _enteredPin = '');
     }
   }
@@ -51,9 +54,14 @@ class _PinScreenState extends State<PinScreen> {
           shape: BoxShape.circle,
         ),
         child: Center(
-          child: Text(label,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold,
-                  color: Colors.indigo)),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.indigo,
+            ),
+          ),
         ),
       ),
     );
@@ -69,8 +77,10 @@ class _PinScreenState extends State<PinScreen> {
           children: [
             const Icon(Icons.lock, size: 48, color: Colors.indigo),
             const SizedBox(height: 16),
-            const Text('Enter 4-digit PIN',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(
+              'Enter 4-digit PIN',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 32),
             // PIN dots
             Row(
@@ -101,10 +111,12 @@ class _PinScreenState extends State<PinScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: row
-                      .map((d) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: _buildKey(d),
-                  ))
+                      .map(
+                        (d) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: _buildKey(d),
+                        ),
+                      )
                       .toList(),
                 ),
               ),
@@ -119,13 +131,19 @@ class _PinScreenState extends State<PinScreen> {
                     child: _buildKey('0'),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12), // ← add this wrapper
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                    ), // ← add this wrapper
                     child: GestureDetector(
                       onTap: _onDelete,
                       child: const SizedBox(
                         width: 72,
                         height: 72,
-                        child: Icon(Icons.backspace_outlined, color: Colors.indigo, size: 28),
+                        child: Icon(
+                          Icons.backspace_outlined,
+                          color: Colors.indigo,
+                          size: 28,
+                        ),
                       ),
                     ),
                   ),

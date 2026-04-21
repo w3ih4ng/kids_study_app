@@ -13,8 +13,8 @@ import 'features/admin/admin_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/services/notification_service.dart';
 
-
-final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,9 +91,9 @@ class _AppStartupState extends State<AppStartup> {
       final lastId = await ChildService.getLastActiveChildId();
       final activeChild = lastId != null
           ? children.firstWhere(
-            (c) => c.id == lastId,
-        orElse: () => children.first,
-      )
+              (c) => c.id == lastId,
+              orElse: () => children.first,
+            )
           : children.first;
       provider.setActiveChild(activeChild);
       _go(const ChildDashboardScreen());
@@ -108,14 +108,12 @@ class _AppStartupState extends State<AppStartup> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => screen),
-          (route) => false,
+      (route) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

@@ -61,7 +61,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
             onSuccess: () => Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (_) => const ParentDashboardScreen()),
-                  (route) => false,
+              (route) => false,
             ),
           ),
         ),
@@ -108,25 +108,27 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                     // so it's always visible on the indigo AppBar.
                     avatarUrl != null && avatarUrl.isNotEmpty
                         ? CircleAvatar(
-                      radius: 28,
-                      backgroundImage: NetworkImage(avatarUrl),
-                      onBackgroundImageError: (_, __) {},
-                    )
+                            radius: 28,
+                            backgroundImage: NetworkImage(avatarUrl),
+                            onBackgroundImageError: (_, __) {},
+                          )
                         : CircleAvatar(
-                      radius: 28,
-                      // White background so the letter pops against
-                      // the indigo AppBar
-                      backgroundColor: Colors.white.withValues(alpha:0.6),
-                      child: Text(
-                        initial,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          // Indigo letter on white circle
-                          color: Color(0xFF4F46E5),
-                        ),
-                      ),
-                    ),
+                            radius: 28,
+                            // White background so the letter pops against
+                            // the indigo AppBar
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.6,
+                            ),
+                            child: Text(
+                              initial,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                // Indigo letter on white circle
+                                color: Color(0xFF4F46E5),
+                              ),
+                            ),
+                          ),
                     // ② Pencil badge
                     Positioned(
                       right: -2,
@@ -167,8 +169,11 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.chevron_right,
-                            color: Colors.white70, size: 18),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: Colors.white70,
+                          size: 18,
+                        ),
                       ],
                     ),
                   ],
@@ -178,10 +183,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
           ),
         ),
       ),
-      actions: const [
-        CoinsBadge(),
-        SizedBox(width: 12),
-      ],
+      actions: const [CoinsBadge(), SizedBox(width: 12)],
     );
   }
 
@@ -190,8 +192,10 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     return AppBar(
       automaticallyImplyLeading: false,
       toolbarHeight: 80,
-      title: Text(title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -240,11 +244,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
             },
           ),
         ),
-        Positioned(
-          bottom: 80,
-          right: 16,
-          child: _buildFloatingPet(),
-        ),
+        Positioned(bottom: 80, right: 16, child: _buildFloatingPet()),
       ],
     );
   }

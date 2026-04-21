@@ -20,11 +20,7 @@ class NotificationService {
   // Call this once on app start
   static Future<void> initialize() async {
     // Request permission
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
     // Setup local notifications channel (Android)
     const androidChannel = AndroidNotificationChannel(
@@ -34,8 +30,9 @@ class NotificationService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation
-    <AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
 
     // Initialize local notifications
@@ -45,8 +42,7 @@ class NotificationService {
     await _localNotifications.initialize(initSettings);
 
     // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(
-        firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((message) {
@@ -104,8 +100,7 @@ class NotificationService {
     required String body,
   }) async {
     try {
-      final response =
-      await _supabase.from('device_tokens').select('token');
+      final response = await _supabase.from('device_tokens').select('token');
       final tokens = (response as List)
           .map((e) => e['token'] as String)
           .toList();
@@ -128,13 +123,10 @@ class NotificationService {
     try {
       await _supabase.functions.invoke(
         'send-notification',
-        body: {
-          'token': token,
-          'title': title,
-          'body': body,
-        },
+        body: {'token': token, 'title': title, 'body': body},
         headers: {
-          'Authorization': 'Bearer ${_supabase.auth.currentSession?.accessToken ?? ''}',
+          'Authorization':
+              'Bearer ${_supabase.auth.currentSession?.accessToken ?? ''}',
         },
       );
     } catch (e) {

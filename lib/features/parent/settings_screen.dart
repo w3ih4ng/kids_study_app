@@ -38,11 +38,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Update')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Update'),
+          ),
         ],
       ),
     );
@@ -53,9 +55,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       try {
         await AuthService.updatePassword(_newPasswordController.text.trim());
-        if (mounted) AppSnackbar.success(context, 'Password updated successfully!');
+        if (mounted)
+          AppSnackbar.success(context, 'Password updated successfully!');
       } catch (e) {
-        if (mounted) AppSnackbar.error(context, 'Failed to update password: ${e.toString()}');
+        if (mounted)
+          AppSnackbar.error(
+            context,
+            'Failed to update password: ${e.toString()}',
+          );
       }
     }
   }
@@ -79,15 +86,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-              onPressed: () {
-                if (_pinController.text.length == 4) {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: const Text('Save')),
+            onPressed: () {
+              if (_pinController.text.length == 4) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text('Save'),
+          ),
         ],
       ),
     );
@@ -100,7 +109,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await ChildService.updatePin(_pinController.text);
         if (mounted) AppSnackbar.success(context, 'PIN updated successfully!');
       } catch (e) {
-        if (mounted) AppSnackbar.error(context, 'Failed to update PIN. Try again.');
+        if (mounted)
+          AppSnackbar.error(context, 'Failed to update PIN. Try again.');
       }
     }
   }
@@ -120,17 +130,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             Card(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.email, color: AppTheme.textSecondary),
+                    leading: const Icon(
+                      Icons.email,
+                      color: AppTheme.textSecondary,
+                    ),
                     title: const Text('Email'),
                     subtitle: Text(email),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.lock, color: AppTheme.textSecondary),
+                    leading: const Icon(
+                      Icons.lock,
+                      color: AppTheme.textSecondary,
+                    ),
                     title: const Text('Password'),
                     subtitle: const Text('••••••••'),
                     trailing: TextButton(
@@ -146,7 +163,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             Card(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 leading: const Icon(Icons.pin, color: AppTheme.textSecondary),
                 title: const Text('Parent PIN'),
@@ -168,9 +186,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 8),
-        Text(title,
-            style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
       ],
     );
   }

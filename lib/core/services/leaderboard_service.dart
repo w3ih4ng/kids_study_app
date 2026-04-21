@@ -6,17 +6,13 @@ final supabase = Supabase.instance.client;
 
 class LeaderboardService {
   // Get top leaderboard
-  static Future<List<LeaderboardModel>> getLeaderboard({
-    int limit = 20,
-  }) async {
+  static Future<List<LeaderboardModel>> getLeaderboard({int limit = 20}) async {
     final response = await supabase
         .from('leaderboard')
         .select('*, children(id, nickname, avatar_url, child_code)')
         .order('score', ascending: false)
         .limit(limit);
-    return (response as List)
-        .map((e) => LeaderboardModel.fromMap(e))
-        .toList();
+    return (response as List).map((e) => LeaderboardModel.fromMap(e)).toList();
   }
 
   // Get rank of a specific child
@@ -26,23 +22,19 @@ class LeaderboardService {
         .select('child_id')
         .order('score', ascending: false);
     final list = response as List;
-    final index =
-    list.indexWhere((e) => e['child_id'] == childId);
+    final index = list.indexWhere((e) => e['child_id'] == childId);
     return index == -1 ? 0 : index + 1;
   }
 
   // Get stats for a specific child
-  static Future<LeaderboardModel?> getChildStats(
-      String childId) async {
+  static Future<LeaderboardModel?> getChildStats(String childId) async {
     final response = await supabase
         .from('leaderboard')
         .select('*, children(id, nickname, avatar_url, child_code)')
         .eq('child_id', childId)
         .limit(1);
     final list = response as List;
-    return list.isNotEmpty
-        ? LeaderboardModel.fromMap(list.first)
-        : null;
+    return list.isNotEmpty ? LeaderboardModel.fromMap(list.first) : null;
   }
 
   // Update leaderboard after quiz
@@ -51,11 +43,14 @@ class LeaderboardService {
     required int coinsEarned,
     required int correctAnswers,
   }) async {
-    await supabase.rpc('update_leaderboard', params: {
-      'child_id_input': childId,
-      'coins_input': coinsEarned,
-      'correct_input': correctAnswers,
-    });
+    await supabase.rpc(
+      'update_leaderboard',
+      params: {
+        'child_id_input': childId,
+        'coins_input': coinsEarned,
+        'correct_input': correctAnswers,
+      },
+    );
   }
 
   // Get leaderboard filtered to friends only
@@ -81,9 +76,7 @@ class LeaderboardService {
         .inFilter('child_id', friendIds)
         .order('score', ascending: false);
 
-    return (response as List)
-        .map((e) => LeaderboardModel.fromMap(e))
-        .toList();
+    return (response as List).map((e) => LeaderboardModel.fromMap(e)).toList();
   }
 
   static Future<List<LeaderboardModel>> getLeaderboardBySubject({
@@ -104,12 +97,13 @@ class LeaderboardService {
       if (r['quizzes'] == null) continue;
       final childId = r['child_id'] as String;
       childStats.putIfAbsent(
-          childId, () => {'correct': 0, 'coins': 0, 'score': 0});
+        childId,
+        () => {'correct': 0, 'coins': 0, 'score': 0},
+      );
       childStats[childId]!['correct'] =
           childStats[childId]!['correct']! + (r['score'] as int? ?? 0);
       childStats[childId]!['coins'] =
-          childStats[childId]!['coins']! +
-              (r['coins_earned'] as int? ?? 0);
+          childStats[childId]!['coins']! + (r['coins_earned'] as int? ?? 0);
     }
 
     if (childStats.isEmpty) return [];
@@ -127,8 +121,7 @@ class LeaderboardService {
         .inFilter('id', childIds);
 
     final childMap = {
-      for (final c in childResponse as List)
-        c['id'] as String: c
+      for (final c in childResponse as List) c['id'] as String: c,
     };
 
     // Build leaderboard models
@@ -168,8 +161,6 @@ class LeaderboardService {
 
     // Get subject leaderboard then filter to friends
     final all = await getLeaderboardBySubject(subject: subject);
-    return all
-        .where((e) => friendIds.contains(e.childId))
-        .toList();
+    return all.where((e) => friendIds.contains(e.childId)).toList();
   }
 }

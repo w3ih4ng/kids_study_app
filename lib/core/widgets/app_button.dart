@@ -29,16 +29,17 @@ class AppButton extends StatelessWidget {
         icon: icon != null ? Icon(icon, color: buttonColor) : const SizedBox(),
         label: isLoading
             ? const SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2))
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : Text(label, style: TextStyle(color: buttonColor)),
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: buttonColor),
-          padding:
-          const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -50,17 +51,19 @@ class AppButton extends StatelessWidget {
           : const SizedBox.shrink(),
       label: isLoading
           ? const SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(
-              color: Colors.white, strokeWidth: 2))
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
           : Text(label),
       style: ElevatedButton.styleFrom(
         backgroundColor: buttonColor,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

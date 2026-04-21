@@ -33,29 +33,41 @@ class BookDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(comic.title,
-                      style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold)),
+                  Text(
+                    comic.title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   if (comic.author != null) ...[
                     const SizedBox(height: 4),
-                    Text('by ${comic.author}',
-                        style: TextStyle(
-                            color: cs.onSurface.withValues(alpha:0.6))),
+                    Text(
+                      'by ${comic.author}',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
                   ],
                   if (comic.description != null) ...[
                     const SizedBox(height: 12),
-                    Text(comic.description!,
-                        style: TextStyle(
-                            color: cs.onSurface.withValues(alpha:0.6),
-                            height: 1.5)),
+                    Text(
+                      comic.description!,
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.6),
+                        height: 1.5,
+                      ),
+                    ),
                   ],
                   const SizedBox(height: 24),
                   if (comic.pdfUrl == null)
                     Center(
-                      child: Text('No PDF available yet.',
-                          style: TextStyle(
-                              color: cs.onSurface.withValues(alpha:0.6))),
+                      child: Text(
+                        'No PDF available yet.',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
                     )
                   else
                     SizedBox(
@@ -64,8 +76,7 @@ class BookDetailScreen extends StatelessWidget {
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                BookReaderScreen(comic: comic),
+                            builder: (_) => BookReaderScreen(comic: comic),
                           ),
                         ),
                         icon: const Icon(Icons.menu_book),
@@ -73,11 +84,10 @@ class BookDetailScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.booksColor,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                              borderRadius:
-                              BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
@@ -123,14 +133,11 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
 
   Future<void> _loadPdf() async {
     try {
-      final response =
-      await http.get(Uri.parse(widget.comic.pdfUrl!));
+      final response = await http.get(Uri.parse(widget.comic.pdfUrl!));
       final dir = await getTemporaryDirectory();
-      final file =
-      File('${dir.path}/book_${widget.comic.id}.pdf');
+      final file = File('${dir.path}/book_${widget.comic.id}.pdf');
       await file.writeAsBytes(response.bodyBytes);
-      _pdfDoc =
-          spdf.PdfDocument(inputBytes: response.bodyBytes);
+      _pdfDoc = spdf.PdfDocument(inputBytes: response.bodyBytes);
       if (!_disposed && mounted) {
         setState(() {
           _localPath = file.path;
@@ -186,8 +193,8 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
           setState(() {});
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content:
-                Text('You reached the end of the book! 🎉')),
+              content: Text('You reached the end of the book! 🎉'),
+            ),
           );
         }
       }
@@ -240,7 +247,7 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
 
   @override
   void dispose() {
-    _disposed = true;  // set FIRST — blocks all async callbacks
+    _disposed = true; // set FIRST — blocks all async callbacks
     _isSpeaking = false;
     _tts.setCompletionHandler(() {});
     _tts.stop();
@@ -260,216 +267,200 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
           children: [
             Text(
               widget.comic.title,
-              style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
             if (_totalPages > 0)
               Text(
                 'Page ${_currentPage + 1} of $_totalPages',
-                style: const TextStyle(
-                    fontSize: 12, color: Colors.white60),
+                style: const TextStyle(fontSize: 12, color: Colors.white60),
               ),
           ],
         ),
       ),
       body: _isLoading
           ? const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: Colors.white),
-            SizedBox(height: 16),
-            Text('Loading book...',
-                style: TextStyle(color: Colors.white)),
-          ],
-        ),
-      )
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.white),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading book...',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            )
           : _error.isNotEmpty
           ? Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text(_error,
-              style:
-              const TextStyle(color: Colors.white),
-              textAlign: TextAlign.center),
-        ),
-      )
-          : Column(
-        children: [
-          Expanded(
-            child: PDFView(
-              filePath: _localPath!,
-              enableSwipe: true,
-              swipeHorizontal: true,
-              autoSpacing: false,
-              pageFling: true,
-              pageSnap: true,
-              defaultPage: _currentPage,
-              fitPolicy: FitPolicy.BOTH,
-              onRender: (pages) {
-                if (!_disposed && mounted) {
-                  setState(
-                          () => _totalPages = pages ?? 0);
-                }
-              },
-              onViewCreated: (controller) {
-                _pdfViewController = controller;
-              },
-              onPageChanged: (page, total) async {
-                if (_disposed) return;
-                final newPage = page ?? 0;
-                final wasPlaying = _isSpeaking;
-                if (mounted) {
-                  setState(() {
-                    _currentPage = newPage;
-                    _totalPages = total ?? 0;
-                  });
-                }
-                _extractPageText(newPage);
-                if (newPage + 1 < (total ?? 0)) {
-                  _extractPageText(newPage + 1);
-                }
-                // If TTS was playing, stop current and restart on new page
-                if (wasPlaying && !_disposed) {
-                  _isSpeaking = false;
-                  _tts.setCompletionHandler(() {});
-                  await _tts.stop();
-                  if (_disposed) return;
-                  _setupTts(); // restore completion handler
-                  await Future.delayed(const Duration(milliseconds: 400));
-                  if (_disposed) return;
-                  _isSpeaking = true;
-                  if (mounted) setState(() {});
-                  await _speakCurrentPage();
-                }
-              },
-              onError: (error) {
-                if (!_disposed && mounted) {
-                  setState(
-                          () => _error = error.toString());
-                }
-              },
-            ),
-          ),
-
-          // Bottom control bar
-          Container(
-            color: const Color(0xFF1A1A2E),
-            padding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: _currentPage > 0
-                      ? () =>
-                      _goToPage(_currentPage - 1)
-                      : null,
-                  icon: const Icon(
-                      Icons.arrow_back_ios_rounded),
-                  color: _currentPage > 0
-                      ? Colors.white
-                      : Colors.white24,
-                  tooltip: 'Previous page',
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  _error,
+                  style: const TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
                 ),
+              ),
+            )
+          : Column(
+              children: [
                 Expanded(
-                  child: Center(
-                    child: Text(
-                      _totalPages > 0
-                          ? '${_currentPage + 1} / $_totalPages'
-                          : '-',
-                      style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14),
-                    ),
+                  child: PDFView(
+                    filePath: _localPath!,
+                    enableSwipe: true,
+                    swipeHorizontal: true,
+                    autoSpacing: false,
+                    pageFling: true,
+                    pageSnap: true,
+                    defaultPage: _currentPage,
+                    fitPolicy: FitPolicy.BOTH,
+                    onRender: (pages) {
+                      if (!_disposed && mounted) {
+                        setState(() => _totalPages = pages ?? 0);
+                      }
+                    },
+                    onViewCreated: (controller) {
+                      _pdfViewController = controller;
+                    },
+                    onPageChanged: (page, total) async {
+                      if (_disposed) return;
+                      final newPage = page ?? 0;
+                      final wasPlaying = _isSpeaking;
+                      if (mounted) {
+                        setState(() {
+                          _currentPage = newPage;
+                          _totalPages = total ?? 0;
+                        });
+                      }
+                      _extractPageText(newPage);
+                      if (newPage + 1 < (total ?? 0)) {
+                        _extractPageText(newPage + 1);
+                      }
+                      // If TTS was playing, stop current and restart on new page
+                      if (wasPlaying && !_disposed) {
+                        _isSpeaking = false;
+                        _tts.setCompletionHandler(() {});
+                        await _tts.stop();
+                        if (_disposed) return;
+                        _setupTts(); // restore completion handler
+                        await Future.delayed(const Duration(milliseconds: 400));
+                        if (_disposed) return;
+                        _isSpeaking = true;
+                        if (mounted) setState(() {});
+                        await _speakCurrentPage();
+                      }
+                    },
+                    onError: (error) {
+                      if (!_disposed && mounted) {
+                        setState(() => _error = error.toString());
+                      }
+                    },
                   ),
                 ),
-                IconButton(
-                  onPressed:
-                  _currentPage < _totalPages - 1
-                      ? () => _goToPage(
-                      _currentPage + 1)
-                      : null,
-                  icon: const Icon(
-                      Icons.arrow_forward_ios_rounded),
-                  color:
-                  _currentPage < _totalPages - 1
-                      ? Colors.white
-                      : Colors.white24,
-                  tooltip: 'Next page',
-                ),
-                const SizedBox(width: 8),
+
+                // Bottom control bar
                 Container(
-                    width: 1,
-                    height: 28,
-                    color: Colors.white24),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _isExtracting
-                      ? null
-                      : _toggleTts,
-                  child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _isSpeaking
-                          ? AppTheme.accent
-                          .withValues(alpha:0.2)
-                          : Colors.white
-                          .withValues(alpha:0.08),
-                      borderRadius:
-                      BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _isSpeaking
-                            ? AppTheme.accent
-                            : Colors.white24,
+                  color: const Color(0xFF1A1A2E),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: _currentPage > 0
+                            ? () => _goToPage(_currentPage - 1)
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_rounded),
+                        color: _currentPage > 0 ? Colors.white : Colors.white24,
+                        tooltip: 'Previous page',
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _isExtracting
-                            ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child:
-                          CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            _totalPages > 0
+                                ? '${_currentPage + 1} / $_totalPages'
+                                : '-',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
                           ),
-                        )
-                            : Icon(
-                          _isSpeaking
-                              ? Icons.volume_up
-                              : Icons.volume_off,
-                          color: _isSpeaking
-                              ? AppTheme.accent
-                              : Colors.white70,
-                          size: 18,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _isSpeaking ? 'Stop' : 'Read',
-                          style: TextStyle(
+                      ),
+                      IconButton(
+                        onPressed: _currentPage < _totalPages - 1
+                            ? () => _goToPage(_currentPage + 1)
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                        color: _currentPage < _totalPages - 1
+                            ? Colors.white
+                            : Colors.white24,
+                        tooltip: 'Next page',
+                      ),
+                      const SizedBox(width: 8),
+                      Container(width: 1, height: 28, color: Colors.white24),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: _isExtracting ? null : _toggleTts,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
                             color: _isSpeaking
-                                ? AppTheme.accent
-                                : Colors.white70,
-                            fontSize: 13,
-                            fontWeight:
-                            FontWeight.bold,
+                                ? AppTheme.accent.withValues(alpha: 0.2)
+                                : Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _isSpeaking
+                                  ? AppTheme.accent
+                                  : Colors.white24,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _isExtracting
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Icon(
+                                      _isSpeaking
+                                          ? Icons.volume_up
+                                          : Icons.volume_off,
+                                      color: _isSpeaking
+                                          ? AppTheme.accent
+                                          : Colors.white70,
+                                      size: 18,
+                                    ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _isSpeaking ? 'Stop' : 'Read',
+                                style: TextStyle(
+                                  color: _isSpeaking
+                                      ? AppTheme.accent
+                                      : Colors.white70,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

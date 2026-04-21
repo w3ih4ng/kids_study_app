@@ -35,7 +35,7 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const ChildDashboardScreen()),
-                (route) => false,
+            (route) => false,
           );
         } else {
           Navigator.pop(context);
@@ -44,7 +44,10 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
       }
     } catch (e) {
       if (mounted) {
-        AppSnackbar.error(context, 'Failed to create profile. Please try again.');
+        AppSnackbar.error(
+          context,
+          'Failed to create profile. Please try again.',
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -71,7 +74,10 @@ class _CreateChildScreenState extends State<CreateChildScreen> {
                     ? "Let's set up your first child profile!"
                     : 'Add a new child profile',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(

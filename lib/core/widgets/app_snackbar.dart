@@ -12,15 +12,13 @@ class AppSnackbar {
             const Icon(Icons.check_circle, color: Colors.white, size: 20),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(message,
-                  style: const TextStyle(color: Colors.white)),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
         backgroundColor: AppTheme.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 3),
       ),
@@ -37,15 +35,13 @@ class AppSnackbar {
             const Icon(Icons.error_outline, color: Colors.white, size: 20),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(message,
-                  style: const TextStyle(color: Colors.white)),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
         backgroundColor: AppTheme.danger,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 4),
       ),
@@ -62,15 +58,13 @@ class AppSnackbar {
             const Icon(Icons.info_outline, color: Colors.white, size: 20),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(message,
-                  style: const TextStyle(color: Colors.white)),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
         backgroundColor: AppTheme.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 3),
       ),
@@ -84,19 +78,20 @@ class AppSnackbar {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.warning_amber_outlined,
-                color: Colors.white, size: 20),
+            const Icon(
+              Icons.warning_amber_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(message,
-                  style: const TextStyle(color: Colors.white)),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
         backgroundColor: AppTheme.accent,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 3),
       ),

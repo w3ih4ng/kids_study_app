@@ -33,8 +33,8 @@ class QuizModel {
       createdAt: DateTime.parse(map['created_at']),
       questions: map['quiz_questions'] != null
           ? (map['quiz_questions'] as List)
-          .map((q) => QuizQuestionModel.fromMap(q))
-          .toList()
+                .map((q) => QuizQuestionModel.fromMap(q))
+                .toList()
           : [],
     );
   }
@@ -53,8 +53,8 @@ class QuizQuestionModel {
   final String? optionBImageUrl;
   final String? optionCImageUrl;
   final String? optionDImageUrl;
-  final String correctAnswer;        // single answer 'a'|'b'|'c'|'d'
-  final bool isMultipleAnswer;       // new
+  final String correctAnswer; // single answer 'a'|'b'|'c'|'d'
+  final bool isMultipleAnswer; // new
   final List<String> correctAnswers; // new ['a','c'] for multiple
 
   QuizQuestionModel({
@@ -78,8 +78,8 @@ class QuizQuestionModel {
   // All correct answers as a list — works for both single and multiple
   List<String> get allCorrectAnswers =>
       isMultipleAnswer && correctAnswers.isNotEmpty
-          ? correctAnswers
-          : [correctAnswer];
+      ? correctAnswers
+      : [correctAnswer];
 
   factory QuizQuestionModel.fromMap(Map<String, dynamic> map) {
     return QuizQuestionModel(
@@ -106,22 +106,32 @@ class QuizQuestionModel {
   // Get text for a given option key
   String optionText(String key) {
     switch (key) {
-      case 'a': return optionA;
-      case 'b': return optionB;
-      case 'c': return optionC;
-      case 'd': return optionD;
-      default: return '';
+      case 'a':
+        return optionA;
+      case 'b':
+        return optionB;
+      case 'c':
+        return optionC;
+      case 'd':
+        return optionD;
+      default:
+        return '';
     }
   }
 
   // Get image url for a given option key
   String? optionImageUrl(String key) {
     switch (key) {
-      case 'a': return optionAImageUrl;
-      case 'b': return optionBImageUrl;
-      case 'c': return optionCImageUrl;
-      case 'd': return optionDImageUrl;
-      default: return null;
+      case 'a':
+        return optionAImageUrl;
+      case 'b':
+        return optionBImageUrl;
+      case 'c':
+        return optionCImageUrl;
+      case 'd':
+        return optionDImageUrl;
+      default:
+        return null;
     }
   }
 }

@@ -5,9 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class QuizImageService {
   static final _supabase = Supabase.instance.client;
 
-  static Future<String?> pickAndUpload({
-    required String prefix,
-  }) async {
+  static Future<String?> pickAndUpload({required String prefix}) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
@@ -17,14 +15,15 @@ class QuizImageService {
     if (picked == null) return null;
 
     final bytes = await picked.readAsBytes();
-    final fileName =
-        '${prefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final fileName = '${prefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    await _supabase.storage.from('quizzes').uploadBinary(
-      fileName,
-      bytes,
-      fileOptions: const FileOptions(upsert: true),
-    );
+    await _supabase.storage
+        .from('quizzes')
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
 
     return _supabase.storage.from('quizzes').getPublicUrl(fileName);
   }
@@ -41,9 +40,10 @@ class QuizImageService {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            const Text('Select Image',
-                style:
-                TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              'Select Image',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             ListTile(
               leading: const CircleAvatar(
@@ -77,13 +77,15 @@ class QuizImageService {
     if (picked == null) return null;
 
     final bytes = await picked.readAsBytes();
-    final fileName =
-        'quiz_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final fileName = 'quiz_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
     await Supabase.instance.client.storage
         .from('quizzes')
-        .uploadBinary(fileName, bytes,
-        fileOptions: const FileOptions(upsert: true));
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
 
     return Supabase.instance.client.storage
         .from('quizzes')

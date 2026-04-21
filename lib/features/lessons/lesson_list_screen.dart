@@ -59,11 +59,14 @@ class _LessonListScreenState extends State<LessonListScreen>
             indicatorColor: Colors.white,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white60,
-            tabs: const [Tab(text: 'Math'), Tab(text: 'English')],
+            tabs: const [
+              Tab(text: 'Math'),
+              Tab(text: 'English'),
+            ],
           ),
         ),
         Container(
-          color: AppTheme.lessonsColor.withValues(alpha:0.06),
+          color: AppTheme.lessonsColor.withValues(alpha: 0.06),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -77,16 +80,18 @@ class _LessonListScreenState extends State<LessonListScreen>
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: selected
                             ? AppTheme.lessonsColor
-                            : AppTheme.lessonsColor.withValues(alpha:0.1),
+                            : AppTheme.lessonsColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selected
                               ? AppTheme.lessonsColor
-                              : AppTheme.lessonsColor.withValues(alpha:0.3),
+                              : AppTheme.lessonsColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -110,12 +115,12 @@ class _LessonListScreenState extends State<LessonListScreen>
           child: _isLoading
               ? const LoadingWidget()
               : TabBarView(
-            controller: _tabController,
-            children: [
-              _buildGrid(_filtered(_mathLessons)),
-              _buildGrid(_filtered(_englishLessons)),
-            ],
-          ),
+                  controller: _tabController,
+                  children: [
+                    _buildGrid(_filtered(_mathLessons)),
+                    _buildGrid(_filtered(_englishLessons)),
+                  ],
+                ),
         ),
       ],
     );
@@ -150,8 +155,7 @@ class _LessonListScreenState extends State<LessonListScreen>
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (_) => LessonDetailScreen(lesson: lesson)),
+        MaterialPageRoute(builder: (_) => LessonDetailScreen(lesson: lesson)),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -159,7 +163,7 @@ class _LessonListScreenState extends State<LessonListScreen>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.07),
+              color: Colors.black.withValues(alpha: 0.07),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -172,15 +176,15 @@ class _LessonListScreenState extends State<LessonListScreen>
               flex: 3,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16)),
+                  top: Radius.circular(16),
+                ),
                 child: lesson.thumbnailUrl != null
                     ? Image.network(
-                  lesson.thumbnailUrl!,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      _placeholderThumb(color),
-                )
+                        lesson.thumbnailUrl!,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _placeholderThumb(color),
+                      )
                     : _placeholderThumb(color),
               ),
             ),
@@ -196,15 +200,19 @@ class _LessonListScreenState extends State<LessonListScreen>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 13),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                     const Spacer(),
                     Wrap(
                       spacing: 4,
                       runSpacing: 4,
                       children: [
-                        _badge(lesson.difficulty,
-                            _difficultyColor(lesson.difficulty)),
+                        _badge(
+                          lesson.difficulty,
+                          _difficultyColor(lesson.difficulty),
+                        ),
                         _badge(lesson.ageLevel, AppTheme.secondary),
                       ],
                     ),
@@ -220,10 +228,13 @@ class _LessonListScreenState extends State<LessonListScreen>
 
   Widget _placeholderThumb(Color color) {
     return Container(
-      color: color.withValues(alpha:0.12),
+      color: color.withValues(alpha: 0.12),
       child: Center(
-        child: Icon(Icons.play_lesson,
-            color: color.withValues(alpha:0.5), size: 36),
+        child: Icon(
+          Icons.play_lesson,
+          color: color.withValues(alpha: 0.5),
+          size: 36,
+        ),
       ),
     );
   }
@@ -232,21 +243,30 @@ class _LessonListScreenState extends State<LessonListScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 10, color: color, fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
   Color _difficultyColor(String d) {
     switch (d) {
-      case 'Easy':   return AppTheme.success;
-      case 'Medium': return AppTheme.accent;
-      case 'Hard':   return AppTheme.danger;
-      default:       return AppTheme.textSecondary;
+      case 'Easy':
+        return AppTheme.success;
+      case 'Medium':
+        return AppTheme.accent;
+      case 'Hard':
+        return AppTheme.danger;
+      default:
+        return AppTheme.textSecondary;
     }
   }
 }

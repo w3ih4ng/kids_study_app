@@ -9,14 +9,14 @@ class QuizService {
   static Future<List<QuizModel>> getQuizzes({String? subject}) async {
     final response = subject != null
         ? await supabase
-        .from('quizzes')
-        .select('*, quiz_questions(*)')
-        .eq('subject', subject)
-        .order('created_at', ascending: false)
+              .from('quizzes')
+              .select('*, quiz_questions(*)')
+              .eq('subject', subject)
+              .order('created_at', ascending: false)
         : await supabase
-        .from('quizzes')
-        .select('*, quiz_questions(*)')
-        .order('created_at', ascending: false);
+              .from('quizzes')
+              .select('*, quiz_questions(*)')
+              .order('created_at', ascending: false);
 
     return (response as List).map((e) => QuizModel.fromMap(e)).toList();
   }
@@ -39,8 +39,7 @@ class QuizService {
     });
   }
 
-  static Future<void> updateQuiz(
-      String id, Map<String, dynamic> data) async {
+  static Future<void> updateQuiz(String id, Map<String, dynamic> data) async {
     await supabase.from('quizzes').update(data).eq('id', id);
   }
 
@@ -79,7 +78,9 @@ class QuizService {
   }
 
   static Future<void> updateQuestion(
-      String id, Map<String, dynamic> data) async {
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     await supabase.from('quiz_questions').update(data).eq('id', id);
   }
 
@@ -129,10 +130,7 @@ class QuizService {
     required int total,
     required int quizCoinValue,
   }) async {
-    final firstAttempt = !await hasAttempted(
-      childId: childId,
-      quizId: quizId,
-    );
+    final firstAttempt = !await hasAttempted(childId: childId, quizId: quizId);
 
     // Only award coins on first attempt
     final coinsEarned = firstAttempt
@@ -149,10 +147,10 @@ class QuizService {
     });
 
     if (firstAttempt && coinsEarned > 0) {
-      await supabase.rpc('add_coins', params: {
-        'child_id_input': childId,
-        'coins_input': coinsEarned,
-      });
+      await supabase.rpc(
+        'add_coins',
+        params: {'child_id_input': childId, 'coins_input': coinsEarned},
+      );
     }
 
     // Update leaderboard
@@ -173,7 +171,8 @@ class QuizService {
 
   // Get all results for a child (for reports)
   static Future<List<Map<String, dynamic>>> getResultsForChild(
-      String childId) async {
+    String childId,
+  ) async {
     final response = await supabase
         .from('quiz_results')
         .select('*, quizzes(title, subject)')

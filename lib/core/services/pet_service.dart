@@ -20,13 +20,10 @@ class PetService {
         .from('child_pets')
         .select('*, pets(*)')
         .eq('child_id', childId);
-    return (response as List)
-        .map((e) => ChildPetModel.fromMap(e))
-        .toList();
+    return (response as List).map((e) => ChildPetModel.fromMap(e)).toList();
   }
 
-  static Future<bool> childOwnsPet(
-      String childId, String petId) async {
+  static Future<bool> childOwnsPet(String childId, String petId) async {
     final response = await supabase
         .from('child_pets')
         .select()
@@ -41,10 +38,10 @@ class PetService {
     required String petId,
     required int price,
   }) async {
-    await supabase.rpc('deduct_coins', params: {
-      'child_id_input': childId,
-      'coins_input': price,
-    });
+    await supabase.rpc(
+      'deduct_coins',
+      params: {'child_id_input': childId, 'coins_input': price},
+    );
     await supabase.from('child_pets').insert({
       'child_id': childId,
       'pet_id': petId,
@@ -78,8 +75,7 @@ class PetService {
     });
   }
 
-  static Future<void> updatePet(
-      String id, Map<String, dynamic> data) async {
+  static Future<void> updatePet(String id, Map<String, dynamic> data) async {
     await supabase.from('pets').update(data).eq('id', id);
   }
 

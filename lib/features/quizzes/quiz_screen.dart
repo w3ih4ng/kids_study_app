@@ -37,8 +37,7 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
     // Shuffle questions
-    _questions = List.from(widget.quiz.questions)
-      ..shuffle(Random());
+    _questions = List.from(widget.quiz.questions)..shuffle(Random());
   }
 
   QuizQuestionModel get _current => _questions[_currentIndex];
@@ -46,8 +45,7 @@ class _QuizScreenState extends State<QuizScreen> {
   bool get _isCorrect {
     final correct = _current.allCorrectAnswers.toSet();
     final selected = _selectedOptions.toSet();
-    return correct.length == selected.length &&
-        correct.containsAll(selected);
+    return correct.length == selected.length && correct.containsAll(selected);
   }
 
   void _selectOption(String option) {
@@ -69,10 +67,12 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Future<void> _confirmAnswer() async {
     if (_selectedOptions.isEmpty) {
-      AppSnackbar.warning(context,
-          _current.isMultipleAnswer
-              ? 'Please select at least one answer.'
-              : 'Please select an answer.');
+      AppSnackbar.warning(
+        context,
+        _current.isMultipleAnswer
+            ? 'Please select at least one answer.'
+            : 'Please select an answer.',
+      );
       return;
     }
 
@@ -117,7 +117,7 @@ class _QuizScreenState extends State<QuizScreen> {
       if (mounted) {
         final updatedChildren = await ChildService.getChildren();
         final updatedChild = updatedChildren.firstWhere(
-              (c) => c.id == child.id,
+          (c) => c.id == child.id,
           orElse: () => child,
         );
         if (mounted) {
@@ -167,14 +167,17 @@ class _QuizScreenState extends State<QuizScreen> {
       if (_current.isMultipleAnswer) {
         return _selectedOptions.contains(option)
             ? const Icon(Icons.check_box, color: AppTheme.primary)
-            : const Icon(Icons.check_box_outline_blank,
-            color: AppTheme.textSecondary);
+            : const Icon(
+                Icons.check_box_outline_blank,
+                color: AppTheme.textSecondary,
+              );
       } else {
         return _selectedOptions.contains(option)
-            ? const Icon(Icons.radio_button_checked,
-            color: AppTheme.primary)
-            : const Icon(Icons.radio_button_unchecked,
-            color: AppTheme.textSecondary);
+            ? const Icon(Icons.radio_button_checked, color: AppTheme.primary)
+            : const Icon(
+                Icons.radio_button_unchecked,
+                color: AppTheme.textSecondary,
+              );
       }
     }
 
@@ -203,8 +206,7 @@ class _QuizScreenState extends State<QuizScreen> {
           child: LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.white24,
-            valueColor:
-            const AlwaysStoppedAnimation(Colors.white),
+            valueColor: const AlwaysStoppedAnimation(Colors.white),
           ),
         ),
       ),
@@ -222,61 +224,66 @@ class _QuizScreenState extends State<QuizScreen> {
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppTheme.accent
-                              .withValues(alpha: 0.1),
-                          borderRadius:
-                          BorderRadius.circular(8),
+                          color: AppTheme.accent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                              color: AppTheme.accent
-                                  .withValues(alpha: 0.3)),
+                            color: AppTheme.accent.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: const Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.school,
-                                color: AppTheme.accent, size: 16),
+                            Icon(
+                              Icons.school,
+                              color: AppTheme.accent,
+                              size: 16,
+                            ),
                             SizedBox(width: 6),
-                            Text('Practice Mode — No coins',
-                                style: TextStyle(
-                                    color: AppTheme.accent,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13)),
+                            Text(
+                              'Practice Mode — No coins',
+                              style: TextStyle(
+                                color: AppTheme.accent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       ),
 
                     // Question number
                     Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Question ${_currentIndex + 1} of ${_questions.length}',
                           style: TextStyle(
-                              color: cs.onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 13),
+                            color: cs.onSurface.withValues(alpha: 0.6),
+                            fontSize: 13,
+                          ),
                         ),
                         if (_current.isMultipleAnswer)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppTheme.secondary
-                                  .withValues(alpha: 0.1),
-                              borderRadius:
-                              BorderRadius.circular(8),
+                              color: AppTheme.secondary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
                               'Multiple answers',
                               style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.secondary,
-                                  fontWeight: FontWeight.bold),
+                                fontSize: 11,
+                                color: AppTheme.secondary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                       ],
@@ -291,8 +298,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           _current.questionImageUrl!,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                          const SizedBox(),
+                          errorBuilder: (_, __, ___) => const SizedBox(),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -302,9 +308,10 @@ class _QuizScreenState extends State<QuizScreen> {
                     Text(
                       _current.question,
                       style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          height: 1.4),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        height: 1.4,
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -319,26 +326,19 @@ class _QuizScreenState extends State<QuizScreen> {
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: _isCorrect
-                              ? AppTheme.success
-                              .withValues(alpha: 0.1)
-                              : AppTheme.danger
-                              .withValues(alpha: 0.1),
-                          borderRadius:
-                          BorderRadius.circular(12),
+                              ? AppTheme.success.withValues(alpha: 0.1)
+                              : AppTheme.danger.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _isCorrect
-                                ? AppTheme.success
-                                .withValues(alpha: 0.4)
-                                : AppTheme.danger
-                                .withValues(alpha: 0.4),
+                                ? AppTheme.success.withValues(alpha: 0.4)
+                                : AppTheme.danger.withValues(alpha: 0.4),
                           ),
                         ),
                         child: Row(
                           children: [
                             Icon(
-                              _isCorrect
-                                  ? Icons.check_circle
-                                  : Icons.cancel,
+                              _isCorrect ? Icons.check_circle : Icons.cancel,
                               color: _isCorrect
                                   ? AppTheme.success
                                   : AppTheme.danger,
@@ -371,98 +371,87 @@ class _QuizScreenState extends State<QuizScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: cs.surface,
-                border: Border(
-                    top: BorderSide(color: cs.outline)),
+                border: Border(top: BorderSide(color: cs.outline)),
               ),
               child: SizedBox(
                 width: double.infinity,
                 child: !_isConfirmed
                     ? ElevatedButton.icon(
-                  onPressed: _selectedOptions.isEmpty
-                      ? null
-                      : _confirmAnswer,
-                  icon: const Icon(Icons.check),
-                  label: const Text('Confirm Answer',
-                      style: TextStyle(fontSize: 16)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: cs.outline,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                        BorderRadius.circular(12)),
-                  ),
-                )
+                        onPressed: _selectedOptions.isEmpty
+                            ? null
+                            : _confirmAnswer,
+                        icon: const Icon(Icons.check),
+                        label: const Text(
+                          'Confirm Answer',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: cs.outline,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      )
                     : !_showNext
                     ? ElevatedButton(
-                  onPressed: null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    _isCorrect
-                        ? AppTheme.success
-                        : AppTheme.danger,
-                    disabledBackgroundColor:
-                    _isCorrect
-                        ? AppTheme.success
-                        .withValues(alpha: 0.6)
-                        : AppTheme.danger
-                        .withValues(alpha: 0.6),
-                    foregroundColor: Colors.white,
-                    padding:
-                    const EdgeInsets.symmetric(
-                        vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                        BorderRadius.circular(12)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+                        onPressed: null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isCorrect
+                              ? AppTheme.success
+                              : AppTheme.danger,
+                          disabledBackgroundColor: _isCorrect
+                              ? AppTheme.success.withValues(alpha: 0.6)
+                              : AppTheme.danger.withValues(alpha: 0.6),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Loading...',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: _nextQuestion,
+                        icon: Icon(
+                          _currentIndex < _questions.length - 1
+                              ? Icons.arrow_forward
+                              : Icons.flag,
+                        ),
+                        label: Text(
+                          _currentIndex < _questions.length - 1
+                              ? 'Next Question'
+                              : 'See Results',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      const Text('Loading...',
-                          style: TextStyle(
-                              fontSize: 16)),
-                    ],
-                  ),
-                )
-                    : ElevatedButton.icon(
-                  onPressed: _nextQuestion,
-                  icon: Icon(
-                    _currentIndex < _questions.length - 1
-                        ? Icons.arrow_forward
-                        : Icons.flag,
-                  ),
-                  label: Text(
-                    _currentIndex < _questions.length - 1
-                        ? 'Next Question'
-                        : 'See Results',
-                    style: const TextStyle(
-                        fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding:
-                    const EdgeInsets.symmetric(
-                        vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                        BorderRadius.circular(
-                            12)),
-                  ),
-                ),
               ),
             ),
           ],
@@ -495,9 +484,9 @@ class _QuizScreenState extends State<QuizScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _optionBorderColor(key),
-              width: _selectedOptions.contains(key) ||
-                  (_isConfirmed &&
-                      _current.allCorrectAnswers.contains(key))
+              width:
+                  _selectedOptions.contains(key) ||
+                      (_isConfirmed && _current.allCorrectAnswers.contains(key))
                   ? 2
                   : 1,
             ),
@@ -509,8 +498,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: _optionBorderColor(key)
-                      .withValues(alpha: 0.15),
+                  color: _optionBorderColor(key).withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -529,19 +517,16 @@ class _QuizScreenState extends State<QuizScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (text.isNotEmpty)
-                      Text(text,
-                          style: const TextStyle(fontSize: 15)),
+                      Text(text, style: const TextStyle(fontSize: 15)),
                     if (imageUrl != null) ...[
-                      if (text.isNotEmpty)
-                        const SizedBox(height: 6),
+                      if (text.isNotEmpty) const SizedBox(height: 6),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
                           imageUrl,
                           height: 80,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                          const SizedBox(),
+                          errorBuilder: (_, __, ___) => const SizedBox(),
                         ),
                       ),
                     ],

@@ -49,7 +49,7 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
 
   bool get _isGif =>
       widget.imageUrl != null &&
-          widget.imageUrl!.toLowerCase().contains('.gif');
+      widget.imageUrl!.toLowerCase().contains('.gif');
 
   @override
   void initState() {
@@ -66,13 +66,11 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
     );
 
     _floatAnimation = Tween<double>(begin: -8, end: 8).animate(
-      CurvedAnimation(
-          parent: _floatController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
 
     _bounceAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(
-          parent: _bounceController, curve: Curves.elasticOut),
+      CurvedAnimation(parent: _bounceController, curve: Curves.elasticOut),
     );
 
     if (_isGif) {
@@ -94,8 +92,7 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
 
     setState(() {
       _isBouncing = true;
-      _speechBubble =
-      _messages[DateTime.now().millisecond % _messages.length];
+      _speechBubble = _messages[DateTime.now().millisecond % _messages.length];
     });
 
     // Play sound from URL or fallback to asset
@@ -121,8 +118,7 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
 
   Widget _buildPetImage() {
     if (widget.imageUrl == null) {
-      return Icon(Icons.pets,
-          size: widget.size * 0.6, color: Colors.grey);
+      return Icon(Icons.pets, size: widget.size * 0.6, color: Colors.grey);
     }
 
     if (_isGif && _gifController != null) {
@@ -137,9 +133,7 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
         placeholder: (context) => SizedBox(
           width: widget.size,
           height: widget.size,
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: const Center(child: CircularProgressIndicator()),
         ),
         onFetchCompleted: () {
           _gifController?.repeat();
@@ -152,11 +146,8 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
       width: widget.size,
       height: widget.size,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Icon(
-        Icons.pets,
-        size: widget.size * 0.6,
-        color: Colors.grey,
-      ),
+      errorBuilder: (_, __, ___) =>
+          Icon(Icons.pets, size: widget.size * 0.6, color: Colors.grey),
     );
   }
 
@@ -180,10 +171,8 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
     if (_isBouncing) {
       petImage = AnimatedBuilder(
         animation: _bounceAnimation,
-        builder: (_, child) => Transform.scale(
-          scale: _bounceAnimation.value,
-          child: child,
-        ),
+        builder: (_, child) =>
+            Transform.scale(scale: _bounceAnimation.value, child: child),
         child: petImage,
       );
     }
@@ -199,15 +188,18 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
               top: -50,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 8),
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: AppTheme.petsColor.withValues(alpha:0.3)),
+                    color: AppTheme.petsColor.withValues(alpha: 0.3),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha:0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -216,8 +208,9 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
                 child: Text(
                   _speechBubble!,
                   style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

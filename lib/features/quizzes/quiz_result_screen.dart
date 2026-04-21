@@ -50,39 +50,49 @@ class QuizResultScreen extends StatelessWidget {
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent.withValues(alpha:0.1),
+                    color: AppTheme.accent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                        color: AppTheme.accent.withValues(alpha:0.3)),
+                      color: AppTheme.accent.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.school,
-                          color: AppTheme.accent, size: 16),
+                      Icon(Icons.school, color: AppTheme.accent, size: 16),
                       SizedBox(width: 6),
-                      Text('Practice Mode — no coins awarded',
-                          style: TextStyle(
-                              color: AppTheme.accent,
-                              fontWeight: FontWeight.bold)),
+                      Text(
+                        'Practice Mode — no coins awarded',
+                        style: TextStyle(
+                          color: AppTheme.accent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              const Icon(Icons.emoji_events,
-                  size: 80, color: AppTheme.accent),
+              const Icon(Icons.emoji_events, size: 80, color: AppTheme.accent),
               const SizedBox(height: 16),
-              Text(_message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                _message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
                 isPracticeMode ? 'Practice Complete!' : 'Quiz Completed!',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    color: AppTheme.textSecondary, fontSize: 16),
+                  color: AppTheme.textSecondary,
+                  fontSize: 16,
+                ),
               ),
               const SizedBox(height: 32),
               // Stars
@@ -101,16 +111,16 @@ class QuizResultScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha:0.05),
+                  color: AppTheme.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: AppTheme.primary.withValues(alpha:0.2)),
+                    color: AppTheme.primary.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _statCard('Score', '$score / $total',
-                        AppTheme.primary),
+                    _statCard('Score', '$score / $total', AppTheme.primary),
                     _statCard(
                       'Coins',
                       isPracticeMode ? '—' : '+$coinsEarned',
@@ -124,18 +134,19 @@ class QuizResultScreen extends StatelessWidget {
                 onPressed: () => Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const ChildDashboardScreen()),
-                      (route) => false,
+                    builder: (_) => const ChildDashboardScreen(),
+                  ),
+                  (route) => false,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text('Continue',
-                    style: TextStyle(fontSize: 16)),
+                child: const Text('Continue', style: TextStyle(fontSize: 16)),
               ),
             ],
           ),
@@ -147,15 +158,19 @@ class QuizResultScreen extends StatelessWidget {
   Widget _statCard(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value,
-            style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: color)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(
-                color: AppTheme.textSecondary, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+        ),
       ],
     );
   }

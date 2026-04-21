@@ -15,9 +15,7 @@ class AuthService {
   }
 
   static Future<void> updatePassword(String newPassword) async {
-    await supabase.auth.updateUser(
-      UserAttributes(password: newPassword),
-    );
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
   static Future<void> logout() async {

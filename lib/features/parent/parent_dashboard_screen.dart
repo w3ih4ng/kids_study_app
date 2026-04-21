@@ -77,12 +77,15 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.pop(context, 'delete'),
                 icon: const Icon(Icons.delete, color: AppTheme.danger),
-                label: const Text('Delete Profile',
-                    style: TextStyle(color: AppTheme.danger)),
+                label: const Text(
+                  'Delete Profile',
+                  style: TextStyle(color: AppTheme.danger),
+                ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppTheme.danger),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
@@ -105,8 +108,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       await ChildService.updateChild(child.id, controller.text.trim());
       await _loadChildren();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Nickname updated!')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Nickname updated!')));
       }
     } else if (result == 'delete') {
       await _deleteChild(child);
@@ -118,15 +122,21 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete Profile'),
-        content: Text('Remove ${child.nickname}\'s profile? This cannot be undone.'),
+        content: Text(
+          'Remove ${child.nickname}\'s profile? This cannot be undone.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete',
-                  style: TextStyle(color: AppTheme.danger))),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppTheme.danger),
+            ),
+          ),
         ],
       ),
     );
@@ -144,8 +154,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       }
     }
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Profile deleted.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Profile deleted.')));
     }
   }
 
@@ -166,7 +177,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      (route) => false,
+                  (route) => false,
                 );
               }
             },
@@ -181,7 +192,11 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             const SizedBox(height: 4),
 
             // ── Child Profiles section ───────────────────────────────────
-            _sectionHeader(Icons.child_care, 'Child Profiles', AppTheme.primary),
+            _sectionHeader(
+              Icons.child_care,
+              'Child Profiles',
+              AppTheme.primary,
+            ),
             const SizedBox(height: 12),
 
             if (_loadingChildren)
@@ -210,7 +225,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         // Avatar
@@ -232,8 +249,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                                     child: Text(
                                       child.nickname,
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -241,25 +259,35 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                                     const SizedBox(width: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 2),
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.primary.withValues(alpha:0.1),
+                                        color: AppTheme.primary.withValues(
+                                          alpha: 0.1,
+                                        ),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      child: const Text('Active',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: AppTheme.primary,
-                                              fontWeight: FontWeight.bold)),
+                                      child: const Text(
+                                        'Active',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ],
                               ),
                               const SizedBox(height: 2),
-                              Text('${child.coins} coins',
-                                  style: const TextStyle(
-                                      color: AppTheme.textSecondary,
-                                      fontSize: 13)),
+                              Text(
+                                '${child.coins} coins',
+                                style: const TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -267,16 +295,20 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         // Switch button (non-active only)
                         if (!isActive)
                           IconButton(
-                            icon: const Icon(Icons.switch_account,
-                                color: AppTheme.primary),
+                            icon: const Icon(
+                              Icons.switch_account,
+                              color: AppTheme.primary,
+                            ),
                             tooltip: 'Switch to this profile',
                             onPressed: () => _switchToChild(child),
                           ),
 
                         // Edit button (delete moved inside)
                         IconButton(
-                          icon: const Icon(Icons.edit,
-                              color: AppTheme.textSecondary),
+                          icon: const Icon(
+                            Icons.edit,
+                            color: AppTheme.textSecondary,
+                          ),
                           tooltip: 'Edit',
                           onPressed: () => _editChild(child),
                         ),
@@ -292,8 +324,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) =>
-                      const CreateChildScreen(isFirstTime: false)),
+                    builder: (_) => const CreateChildScreen(isFirstTime: false),
+                  ),
                 );
                 _loadChildren();
               },
@@ -302,14 +334,19 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
 
             const SizedBox(height: 32),
 
             // ── Quick Actions section ────────────────────────────────────
-            _sectionHeader(Icons.dashboard, 'Quick Actions', AppTheme.secondary),
+            _sectionHeader(
+              Icons.dashboard,
+              'Quick Actions',
+              AppTheme.secondary,
+            ),
             const SizedBox(height: 12),
 
             _DashboardCard(
@@ -317,8 +354,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               title: 'Reports',
               subtitle: "View your children's progress and scores",
               color: AppTheme.lessonsColor,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ReportsScreen())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReportsScreen()),
+              ),
             ),
             const SizedBox(height: 12),
             _DashboardCard(
@@ -326,8 +365,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               title: 'Settings',
               subtitle: 'Account details and PIN security',
               color: AppTheme.secondary,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ),
             ),
             const SizedBox(height: 12),
             _DashboardCard(
@@ -339,14 +380,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 final children = await ChildService.getChildren();
                 if (context.mounted && children.isNotEmpty) {
                   final current =
-                      context.read<ChildProvider>().activeChild ?? children.first;
+                      context.read<ChildProvider>().activeChild ??
+                      children.first;
                   context.read<ChildProvider>().setActiveChild(current);
                   await ChildService.saveLastActiveChild(current.id); // save it
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const ChildDashboardScreen()),
-                        (route) => false,
+                      builder: (_) => const ChildDashboardScreen(),
+                    ),
+                    (route) => false,
                   );
                 }
               },
@@ -364,9 +407,14 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 8),
-        Text(title,
-            style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
       ],
     );
   }
@@ -394,16 +442,16 @@ class _DashboardCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withValues(alpha:0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha:0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha:0.15),
+                color: color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 26),
@@ -413,13 +461,21 @@ class _DashboardCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 13)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),

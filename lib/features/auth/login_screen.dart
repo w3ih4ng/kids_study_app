@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const AppStartup()),
-              (route) => false,
+          (route) => false,
         );
       }
     } on AuthException catch (e) {
@@ -61,7 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height -
+                minHeight:
+                    MediaQuery.of(context).size.height -
                     MediaQuery.of(context).padding.top -
                     MediaQuery.of(context).padding.bottom,
               ),
@@ -72,14 +73,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Icon(Icons.school, size: 72, color: AppTheme.primary),
                     const SizedBox(height: 16),
-                    const Text('Kids Study App',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 26, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Kids Study App',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Welcome back!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    const Text(
+                      'Welcome back!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
                     const SizedBox(height: 40),
                     TextField(
                       controller: _emailController,
@@ -109,17 +116,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(
-                          color: Colors.white)
-                          : const Text('Login',
-                          style: TextStyle(fontSize: 16)),
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Login', style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const RegisterScreen())),
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const RegisterScreen(),
+                        ),
+                      ),
                       child: const Text("Don't have an account? Register"),
                     ),
                   ],

@@ -17,17 +17,12 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.lesson.type == 'youtube' &&
-        widget.lesson.contentUrl != null) {
-      final videoId =
-      YoutubePlayer.convertUrlToId(widget.lesson.contentUrl!);
+    if (widget.lesson.type == 'youtube' && widget.lesson.contentUrl != null) {
+      final videoId = YoutubePlayer.convertUrlToId(widget.lesson.contentUrl!);
       if (videoId != null) {
         _controller = YoutubePlayerController(
           initialVideoId: videoId,
-          flags: const YoutubePlayerFlags(
-            autoPlay: false,
-            mute: false,
-          ),
+          flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
         );
       }
     }
@@ -86,17 +81,15 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 fit: BoxFit.fitWidth,
                 errorBuilder: (_, __, ___) => Container(
                   height: 220,
-                  color: color.withValues(alpha:0.1),
+                  color: color.withValues(alpha: 0.1),
                   child: Icon(Icons.broken_image, color: color, size: 48),
                 ),
               )
             else
               Container(
                 height: 200,
-                color: color.withValues(alpha:0.1),
-                child: Center(
-                  child: Icon(Icons.image, color: color, size: 64),
-                ),
+                color: color.withValues(alpha: 0.1),
+                child: Center(child: Icon(Icons.image, color: color, size: 64)),
               ),
             _lessonInfo(lesson, color),
           ],
@@ -111,9 +104,10 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(lesson.title,
-              style: const TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(
+            lesson.title,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -122,16 +116,20 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
               _tag(lesson.difficulty, _difficultyColor(lesson.difficulty)),
             ],
           ),
-          if (lesson.description != null &&
-              lesson.description!.isNotEmpty) ...[
+          if (lesson.description != null && lesson.description!.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const Text('About this lesson',
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              'About this lesson',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            Text(lesson.description!,
-                style: const TextStyle(
-                    color: AppTheme.textSecondary, height: 1.5)),
+            Text(
+              lesson.description!,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                height: 1.5,
+              ),
+            ),
           ],
         ],
       ),
@@ -140,10 +138,14 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
   Color _difficultyColor(String difficulty) {
     switch (difficulty) {
-      case 'Easy': return AppTheme.success;
-      case 'Medium': return AppTheme.accent;
-      case 'Hard': return AppTheme.danger;
-      default: return AppTheme.textSecondary;
+      case 'Easy':
+        return AppTheme.success;
+      case 'Medium':
+        return AppTheme.accent;
+      case 'Hard':
+        return AppTheme.danger;
+      default:
+        return AppTheme.textSecondary;
     }
   }
 
@@ -151,14 +153,17 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }

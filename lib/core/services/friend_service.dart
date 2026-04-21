@@ -11,9 +11,7 @@ class FriendService {
         .select('*, friend:friend_id(id, nickname, avatar_url, child_code)')
         .eq('child_id', childId)
         .order('is_best_friend', ascending: false);
-    return (response as List)
-        .map((e) => FriendModel.fromMap(e))
-        .toList();
+    return (response as List).map((e) => FriendModel.fromMap(e)).toList();
   }
 
   static Future<bool> isFriend({
@@ -72,9 +70,7 @@ class FriendService {
         .neq('id', currentChildId)
         .limit(10);
 
-    return (response as List)
-        .map((e) => ChildInfo.fromMap(e))
-        .toList();
+    return (response as List).map((e) => ChildInfo.fromMap(e)).toList();
   }
 
   // ── Friend Requests ───────────────────────────────
@@ -106,7 +102,8 @@ class FriendService {
 
   // Get pending requests for a child
   static Future<List<FriendRequestModel>> getPendingRequests(
-      String childId) async {
+    String childId,
+  ) async {
     final response = await supabase
         .from('friend_requests')
         .select('*, sender:sender_id(id, nickname, avatar_url, child_code)')

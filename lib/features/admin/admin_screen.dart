@@ -23,8 +23,10 @@ class AdminScreen extends StatelessWidget {
             onPressed: () async {
               await AuthService.logout();
               if (context.mounted) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
               }
             },
           ),
@@ -36,12 +38,15 @@ class AdminScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 8),
-            const Text('Manage Content',
-                style: TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text(
+              'Manage Content',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
-            const Text('Select a category to manage',
-                style: TextStyle(color: AppTheme.textSecondary)),
+            const Text(
+              'Select a category to manage',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
             const SizedBox(height: 32),
             Expanded(
               child: GridView.count(
@@ -53,33 +58,45 @@ class AdminScreen extends StatelessWidget {
                     icon: Icons.play_lesson,
                     title: 'Lessons',
                     color: AppTheme.lessonsColor,
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (_) => const AdminLessonsScreen())),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminLessonsScreen(),
+                      ),
+                    ),
                   ),
                   _AdminCard(
                     icon: Icons.quiz,
                     title: 'Quizzes',
                     color: AppTheme.quizzesColor,
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (_) => const AdminQuizzesScreen())),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminQuizzesScreen(),
+                      ),
+                    ),
                   ),
                   _AdminCard(
                     icon: Icons.pets,
                     title: 'Pets',
                     color: AppTheme.petsColor,
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (_) => const AdminPetsScreen())),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminPetsScreen(),
+                      ),
+                    ),
                   ),
                   _AdminCard(
                     icon: Icons.menu_book,
                     title: 'Comics',
                     color: AppTheme.booksColor,
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (_) => const AdminBooksScreen())),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminBooksScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -110,9 +127,9 @@ class _AdminCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: color.withValues(alpha:0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha:0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -120,15 +137,16 @@ class _AdminCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: color.withValues(alpha:0.15),
+                color: color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 36),
             ),
             const SizedBox(height: 12),
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),

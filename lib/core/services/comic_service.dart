@@ -28,8 +28,7 @@ class ComicService {
     });
   }
 
-  static Future<void> updateComic(
-      String id, Map<String, dynamic> data) async {
+  static Future<void> updateComic(String id, Map<String, dynamic> data) async {
     await supabase.from('comics').update(data).eq('id', id);
   }
 

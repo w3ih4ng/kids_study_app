@@ -55,8 +55,10 @@ class _PetShopScreenState extends State<PetShopScreen>
     }
 
     if (child.coins < pet.price) {
-      AppSnackbar.warning(context,
-          'Not enough coins! Need ${pet.price - child.coins} more coins.');
+      AppSnackbar.warning(
+        context,
+        'Not enough coins! Need ${pet.price - child.coins} more coins.',
+      );
       return;
     }
 
@@ -70,17 +72,21 @@ class _PetShopScreenState extends State<PetShopScreen>
             AnimatedPetWidget(imageUrl: pet.imageUrl, size: 80),
             const SizedBox(height: 12),
             Text('This will cost ${pet.price} coins.'),
-            Text('You have ${child.coins} coins.',
-                style: const TextStyle(color: AppTheme.textSecondary)),
+            Text(
+              'You have ${child.coins} coins.',
+              style: const TextStyle(color: AppTheme.textSecondary),
+            ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Buy!')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Buy!'),
+          ),
         ],
       ),
     );
@@ -136,9 +142,9 @@ class _PetShopScreenState extends State<PetShopScreen>
           child: _isLoading
               ? const LoadingWidget()
               : TabBarView(
-            controller: _tabController,
-            children: [_buildShop(), _buildMyPets()],
-          ),
+                  controller: _tabController,
+                  children: [_buildShop(), _buildMyPets()],
+                ),
         ),
       ],
     );
@@ -147,7 +153,9 @@ class _PetShopScreenState extends State<PetShopScreen>
   Widget _buildShop() {
     if (_shopPets.isEmpty) {
       return const EmptyStateWidget(
-          message: 'No pets in the shop yet.', icon: Icons.pets);
+        message: 'No pets in the shop yet.',
+        icon: Icons.pets,
+      );
     }
 
     final child = context.watch<ChildProvider>().activeChild;
@@ -171,14 +179,14 @@ class _PetShopScreenState extends State<PetShopScreen>
           child: Container(
             decoration: BoxDecoration(
               color: owned
-                  ? AppTheme.success.withValues(alpha:0.1)
+                  ? AppTheme.success.withValues(alpha: 0.1)
                   : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: owned
                     ? AppTheme.success
                     : canAfford
-                    ? AppTheme.petsColor.withValues(alpha:0.3)
+                    ? AppTheme.petsColor.withValues(alpha: 0.3)
                     : Theme.of(context).colorScheme.outline,
                 width: owned ? 2 : 1,
               ),
@@ -188,49 +196,64 @@ class _PetShopScreenState extends State<PetShopScreen>
               children: [
                 AnimatedPetWidget(imageUrl: pet.imageUrl, size: 80),
                 const SizedBox(height: 8),
-                Text(pet.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  pet.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 if (owned)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppTheme.success.withValues(alpha:0.15),
+                      color: AppTheme.success.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Owned ✓',
-                        style: TextStyle(
-                            color: AppTheme.success,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12)),
+                    child: const Text(
+                      'Owned ✓',
+                      style: TextStyle(
+                        color: AppTheme.success,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   )
                 else
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: canAfford
-                          ? AppTheme.accent.withValues(alpha:0.15)
-                          : AppTheme.danger.withValues(alpha:0.1),
+                          ? AppTheme.accent.withValues(alpha: 0.15)
+                          : AppTheme.danger.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.monetization_on,
-                            color:
-                            canAfford ? AppTheme.accent : AppTheme.danger,
-                            size: 14),
+                        Icon(
+                          Icons.monetization_on,
+                          color: canAfford ? AppTheme.accent : AppTheme.danger,
+                          size: 14,
+                        ),
                         const SizedBox(width: 4),
-                        Text('${pet.price}',
-                            style: TextStyle(
-                                color: canAfford
-                                    ? AppTheme.accent
-                                    : AppTheme.danger,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12)),
+                        Text(
+                          '${pet.price}',
+                          style: TextStyle(
+                            color: canAfford
+                                ? AppTheme.accent
+                                : AppTheme.danger,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -245,8 +268,9 @@ class _PetShopScreenState extends State<PetShopScreen>
   Widget _buildMyPets() {
     if (_myPets.isEmpty) {
       return const EmptyStateWidget(
-          message: 'You don\'t have any pets yet.\nVisit the shop!',
-          icon: Icons.pets);
+        message: 'You don\'t have any pets yet.\nVisit the shop!',
+        icon: Icons.pets,
+      );
     }
 
     final child = context.watch<ChildProvider>().activeChild;
@@ -273,10 +297,11 @@ class _PetShopScreenState extends State<PetShopScreen>
             child: Row(
               children: [
                 AnimatedPetWidget(
-                    imageUrl: pet.imageUrl,
-                    soundUrl: pet.soundUrl,
-                    size: 80,
-                    animate: isActive),
+                  imageUrl: pet.imageUrl,
+                  soundUrl: pet.soundUrl,
+                  size: 80,
+                  animate: isActive,
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -284,32 +309,47 @@ class _PetShopScreenState extends State<PetShopScreen>
                     children: [
                       Row(
                         children: [
-                          Text(pet.name,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            pet.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           if (isActive) ...[
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: AppTheme.petsColor.withValues(alpha:0.15),
+                                color: AppTheme.petsColor.withValues(
+                                  alpha: 0.15,
+                                ),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Text('Active',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppTheme.petsColor,
-                                      fontWeight: FontWeight.bold)),
+                              child: const Text(
+                                'Active',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.petsColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ],
                       ),
                       if (pet.description != null) ...[
                         const SizedBox(height: 4),
-                        Text(pet.description!,
-                            style: const TextStyle(
-                                color: AppTheme.textSecondary, fontSize: 13)),
+                        Text(
+                          pet.description!,
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
                       ],
                       const SizedBox(height: 4),
                       Text(
@@ -344,17 +384,21 @@ class _PetShopScreenState extends State<PetShopScreen>
                           activePetId: pet.id,
                         );
                         if (mounted) {
-                          context
-                              .read<ChildProvider>()
-                              .setActiveChild(updatedChild);
-                          AppSnackbar.success(context,
-                              '${pet.name} is now your active companion!');
+                          context.read<ChildProvider>().setActiveChild(
+                            updatedChild,
+                          );
+                          AppSnackbar.success(
+                            context,
+                            '${pet.name} is now your active companion!',
+                          );
                           _load();
                         }
                       } catch (e) {
                         if (mounted) {
                           AppSnackbar.error(
-                              context, 'Failed to set active pet.');
+                            context,
+                            'Failed to set active pet.',
+                          );
                         }
                       }
                     },
@@ -362,12 +406,17 @@ class _PetShopScreenState extends State<PetShopScreen>
                       backgroundColor: AppTheme.petsColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child:
-                    const Text('Set Active', style: TextStyle(fontSize: 12)),
+                    child: const Text(
+                      'Set Active',
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
               ],
             ),

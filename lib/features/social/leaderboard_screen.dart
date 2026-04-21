@@ -50,18 +50,24 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final child = context.read<ChildProvider>().activeChild!;
 
     final all = await LeaderboardService.getLeaderboard();
-    final friends =
-    await LeaderboardService.getFriendsLeaderboard(childId: child.id);
-    final math =
-    await LeaderboardService.getLeaderboardBySubject(subject: 'Math');
-    final english =
-    await LeaderboardService.getLeaderboardBySubject(subject: 'English');
-    final friendsMath =
-    await LeaderboardService.getFriendsLeaderboardBySubject(
-        childId: child.id, subject: 'Math');
+    final friends = await LeaderboardService.getFriendsLeaderboard(
+      childId: child.id,
+    );
+    final math = await LeaderboardService.getLeaderboardBySubject(
+      subject: 'Math',
+    );
+    final english = await LeaderboardService.getLeaderboardBySubject(
+      subject: 'English',
+    );
+    final friendsMath = await LeaderboardService.getFriendsLeaderboardBySubject(
+      childId: child.id,
+      subject: 'Math',
+    );
     final friendsEnglish =
-    await LeaderboardService.getFriendsLeaderboardBySubject(
-        childId: child.id, subject: 'English');
+        await LeaderboardService.getFriendsLeaderboardBySubject(
+          childId: child.id,
+          subject: 'English',
+        );
     final stats = await LeaderboardService.getChildStats(child.id);
     final rank = await LeaderboardService.getChildRank(child.id);
 
@@ -112,7 +118,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => LimitedProfileSheet(entry: entry),
     );
   }
@@ -137,27 +144,25 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       body: _isLoading
           ? const LoadingWidget()
           : TabBarView(
-        controller: _tabController,
-        children: [
-          _buildFilteredTab(
-            list: _currentAllList,
-            selectedFilter: _allSubjectFilter,
-            onFilterChanged: (f) =>
-                setState(() => _allSubjectFilter = f),
-            emptyMessage:
-            'No rankings yet.\nComplete a quiz to appear!',
-          ),
-          _buildFilteredTab(
-            list: _currentFriendsList,
-            selectedFilter: _friendsSubjectFilter,
-            onFilterChanged: (f) =>
-                setState(() => _friendsSubjectFilter = f),
-            emptyMessage:
-            'None of your friends are on the leaderboard yet.',
-          ),
-          _buildMyStats(),
-        ],
-      ),
+              controller: _tabController,
+              children: [
+                _buildFilteredTab(
+                  list: _currentAllList,
+                  selectedFilter: _allSubjectFilter,
+                  onFilterChanged: (f) => setState(() => _allSubjectFilter = f),
+                  emptyMessage: 'No rankings yet.\nComplete a quiz to appear!',
+                ),
+                _buildFilteredTab(
+                  list: _currentFriendsList,
+                  selectedFilter: _friendsSubjectFilter,
+                  onFilterChanged: (f) =>
+                      setState(() => _friendsSubjectFilter = f),
+                  emptyMessage:
+                      'None of your friends are on the leaderboard yet.',
+                ),
+                _buildMyStats(),
+              ],
+            ),
     );
   }
 
@@ -172,9 +177,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       children: [
         // Subject filter chips
         Container(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: AppTheme.primary.withValues(alpha:0.04),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          color: AppTheme.primary.withValues(alpha: 0.04),
           child: Row(
             children: ['All', 'Math', 'English'].map((subject) {
               final isSelected = selectedFilter == subject;
@@ -191,16 +195,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? color
-                          : color.withValues(alpha:0.1),
+                      color: isSelected ? color : color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
                             ? color
-                            : color.withValues(alpha:0.3),
+                            : color.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
@@ -221,24 +225,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         Expanded(
           child: list.isEmpty
               ? Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.leaderboard_outlined,
-                      size: 72, color: AppTheme.textSecondary),
-                  const SizedBox(height: 16),
-                  Text(
-                    emptyMessage,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: AppTheme.textSecondary),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.leaderboard_outlined,
+                          size: 72,
+                          color: AppTheme.textSecondary,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          emptyMessage,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          )
+                )
               : _buildRankingsList(list),
         ),
       ],
@@ -247,7 +253,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildRankingsList(List<LeaderboardModel> list) {
     final child = context.read<ChildProvider>().activeChild;
-    final cs = Theme.of(context).colorScheme;          // add this
+    final cs = Theme.of(context).colorScheme; // add this
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -262,8 +268,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
             color: isMe
-                ? AppTheme.primary.withValues(alpha:0.08)
-                : cs.surface,                           // changed
+                ? AppTheme.primary.withValues(alpha: 0.08)
+                : cs.surface, // changed
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isMe ? AppTheme.primary : cs.outline, // changed
@@ -275,7 +281,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             onTap: isMe ? null : () => _showLimitedProfile(entry),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 4),
+                horizontal: 16,
+                vertical: 4,
+              ),
               leading: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -283,13 +291,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     width: 36,
                     child: Center(
                       child: rank <= 3
-                          ? Text(_rankEmoji(rank),
-                          style: const TextStyle(fontSize: 22))
-                          : Text('#$rank',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: _rankColor(rank))),
+                          ? Text(
+                              _rankEmoji(rank),
+                              style: const TextStyle(fontSize: 22),
+                            )
+                          : Text(
+                              '#$rank',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: _rankColor(rank),
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -309,7 +322,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         fontWeight: FontWeight.bold,
                         color: isMe
                             ? AppTheme.primary
-                            : cs.onSurface,           // changed
+                            : cs.onSurface, // changed
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -318,16 +331,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha:0.1),
+                        color: AppTheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text('You',
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: AppTheme.primary,
-                              fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'You',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ],
@@ -335,14 +353,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               subtitle: Text(
                 '${entry.totalCorrect} correct · ${entry.totalCoins} coins',
                 style: TextStyle(
-                    fontSize: 11,
-                    color: cs.onSurface.withValues(alpha:0.6)),  // changed
+                  fontSize: 11,
+                  color: cs.onSurface.withValues(alpha: 0.6),
+                ), // changed
               ),
               trailing: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: _rankColor(rank).withValues(alpha:0.12),
+                  color: _rankColor(rank).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -402,18 +423,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _myRank == 1
-                            ? 'You\'re #1! 🎉'
-                            : 'Rank #$_myRank',
+                        _myRank == 1 ? 'You\'re #1! 🎉' : 'Rank #$_myRank',
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold),
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         '${_myStats!.score} total points',
                         style: const TextStyle(
-                            color: Colors.white70, fontSize: 14),
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -446,14 +468,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           const SizedBox(height: 24),
 
-          const Text('Score Breakdown',
-              style:
-              TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Score Breakdown',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 4),
           const Text(
             'Score = Coins + (Correct Answers × 10)',
-            style: TextStyle(
-                color: AppTheme.textSecondary, fontSize: 12),
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
           ),
           const SizedBox(height: 16),
           Container(
@@ -474,18 +496,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, _) {
-                        const labels = [
-                          'Coins',
-                          'Answers\n×10',
-                          'Total'
-                        ];
+                        const labels = ['Coins', 'Answers\n×10', 'Total'];
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             labels[value.toInt()],
                             style: const TextStyle(
-                                fontSize: 11,
-                                color: AppTheme.textSecondary),
+                              fontSize: 11,
+                              color: AppTheme.textSecondary,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         );
@@ -493,23 +512,29 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     ),
                   ),
                   leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 barGroups: [
-                  _barGroup(0, _myStats!.totalCoins.toDouble(),
-                      AppTheme.accent),
                   _barGroup(
-                      1,
-                      (_myStats!.totalCorrect * 10).toDouble(),
-                      AppTheme.success),
+                    0,
+                    _myStats!.totalCoins.toDouble(),
+                    AppTheme.accent,
+                  ),
                   _barGroup(
-                      2, _myStats!.score.toDouble(), AppTheme.primary),
+                    1,
+                    (_myStats!.totalCorrect * 10).toDouble(),
+                    AppTheme.success,
+                  ),
+                  _barGroup(2, _myStats!.score.toDouble(), AppTheme.primary),
                 ],
               ),
             ),
@@ -517,9 +542,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           const SizedBox(height: 24),
 
           if (_allPlayers.length >= 2) ...[
-            const Text('Top 5 Comparison',
-                style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Top 5 Comparison',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             Container(
               height: 200,
@@ -564,23 +590,31 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 final i = value.toInt();
                 if (i >= top.length) return const SizedBox();
                 final name = top[i].childInfo?.nickname ?? '?';
-                final short =
-                name.length > 6 ? '${name.substring(0, 6)}..' : name;
+                final short = name.length > 6
+                    ? '${name.substring(0, 6)}..'
+                    : name;
                 return Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text(short,
-                      style: const TextStyle(
-                          fontSize: 10, color: AppTheme.textSecondary)),
+                  child: Text(
+                    short,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
                 );
               },
             ),
           ),
           leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false)),
+            sideTitles: SideTitles(showTitles: false),
+          ),
           topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false)),
+            sideTitles: SideTitles(showTitles: false),
+          ),
           rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false)),
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
@@ -604,36 +638,38 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           toY: y,
           color: color,
           width: 32,
-          borderRadius:
-          const BorderRadius.vertical(top: Radius.circular(6)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
         ),
       ],
     );
   }
 
-  Widget _statCard(
-      String value, String label, IconData icon, Color color) {
+  Widget _statCard(String value, String label, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha:0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 12)),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -690,8 +726,7 @@ class LimitedProfileSheet extends StatelessWidget {
         backgroundColor: AppTheme.success,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -744,17 +779,15 @@ class LimitedProfileSheet extends StatelessWidget {
           // Nickname
           Text(
             nickname,
-            style: const TextStyle(
-                fontSize: 22, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
 
           // Score badge
           Container(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha:0.1),
+              color: AppTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -773,17 +806,17 @@ class LimitedProfileSheet extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha:0.05),
+              color: AppTheme.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
-              border:
-              Border.all(color: AppTheme.primary.withValues(alpha:0.2)),
+              border: Border.all(
+                color: AppTheme.primary.withValues(alpha: 0.2),
+              ),
             ),
             child: Column(
               children: [
                 const Text(
                   'Friend Code',
-                  style: TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 12),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -808,7 +841,7 @@ class LimitedProfileSheet extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withValues(alpha:0.1),
+                              color: AppTheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -825,8 +858,7 @@ class LimitedProfileSheet extends StatelessWidget {
                 const SizedBox(height: 6),
                 const Text(
                   'Use this code to send a friend request',
-                  style: TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 11),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -843,10 +875,13 @@ class LimitedProfileSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 side: const BorderSide(color: AppTheme.border),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: const Text('Close',
-                  style: TextStyle(color: AppTheme.textSecondary)),
+              child: const Text(
+                'Close',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
             ),
           ),
         ],
