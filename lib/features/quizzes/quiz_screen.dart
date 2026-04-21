@@ -33,6 +33,8 @@ class _QuizScreenState extends State<QuizScreen> {
   bool _showNext = false;
   int _correctCount = 0;
 
+  bool _isFinishing = false;
+
   @override
   void initState() {
     super.initState();
@@ -94,6 +96,8 @@ class _QuizScreenState extends State<QuizScreen> {
         _showNext = false;
       });
     } else {
+      if (_isFinishing) return;
+      _isFinishing = true;
       _finishQuiz();
     }
   }
@@ -103,27 +107,45 @@ class _QuizScreenState extends State<QuizScreen> {
     final total = _questions.length;
 
     int coinsEarned = 0;
-    if (!widget.isPracticeMode) {
-      final result = await QuizService.submitResult(
-        childId: child.id,
-        quizId: widget.quiz.id,
-        score: _correctCount,
-        total: total,
-        quizCoinValue: widget.quiz.coinValue,
-      );
-      coinsEarned = result.coinsEarned;
+    try {
+      if (!widget.isPracticeMode) {
+        final result = await QuizService.submitResult(
+          childId: child.id,
+          quizId: widget.quiz.id,
+          score: _correctCount,
+          total: total,
+          quizCoinValue: widget.quiz.coinValue,
+        );
+        coinsEarned = result.coinsEarned;
 
-      // Refresh child data so coins badge updates immediately
-      if (mounted) {
+        // Refresh coins badge
         final updatedChildren = await ChildService.getChildren();
         final updatedChild = updatedChildren.firstWhere(
-          (c) => c.id == child.id,
+              (c) => c.id == child.id,
           orElse: () => child,
         );
         if (mounted) {
           context.read<ChildProvider>().setActiveChild(updatedChild);
         }
       }
+    } catch (e) {
+      debugPrint('Quiz finish error: $e');
+      // Still navigate to result even if coins fail
+    }
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizResultScreen(
+            quizTitle: widget.quiz.title,
+            score: _correctCount,
+            total: total,
+            coinsEarned: coinsEarned,
+            isPracticeMode: widget.isPracticeMode,
+          ),
+        ),
+      );
     }
   }
 
