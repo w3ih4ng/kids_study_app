@@ -10,6 +10,8 @@ import '../../core/widgets/loading_widget.dart';
 import '../../core/widgets/app_snackbar.dart';
 import '../../models/friend_model.dart';
 import 'qr_scanner_screen.dart';
+import '../../../../main.dart';
+import 'friend_profile_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -19,7 +21,7 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
   List<FriendModel> _friends = [];
   List<FriendRequestModel> _pendingRequests = [];
@@ -29,6 +31,25 @@ class _FriendsScreenState extends State<FriendsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // Reloads every time Friends screen becomes visible
+  @override
+  void didPopNext() {
     _load();
   }
 
@@ -330,8 +351,21 @@ class _FriendsScreenState extends State<FriendsScreen>
         final friend = _friends[i];
         final info = friend.friendInfo;
         return Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: ListTile(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                final info = friend.friendInfo;
+                if (info != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FriendProfileScreen(friend: info),
+                    ),
+                  );
+                }
+              },
+              child: ListTile(
             leading: ChildAvatar(
               nickname: info?.nickname ?? '?',
               avatarUrl: info?.avatarUrl,
@@ -397,6 +431,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                 ),
               ],
             ),
+          ),
           ),
         );
       },
