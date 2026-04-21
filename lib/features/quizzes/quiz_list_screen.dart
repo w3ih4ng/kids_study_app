@@ -162,15 +162,28 @@ class _QuizListScreenState extends State<QuizListScreen>
 
   Widget _buildList(List<QuizModel> quizzes) {
     if (quizzes.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'No quizzes available.',
-        icon: Icons.quiz_outlined,
+      return RefreshIndicator(
+        onRefresh: _load,
+        child: const SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 400,
+            child: EmptyStateWidget(
+              message: 'No quizzes available.',
+              icon: Icons.quiz_outlined,
+            ),
+          ),
+        ),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: quizzes.length,
-      itemBuilder: (_, i) => _quizCard(quizzes[i]),
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: quizzes.length,
+        itemBuilder: (_, i) => _quizCard(quizzes[i]),
+      ),
     );
   }
 

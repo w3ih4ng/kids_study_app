@@ -128,21 +128,34 @@ class _LessonListScreenState extends State<LessonListScreen>
 
   Widget _buildGrid(List<LessonModel> lessons) {
     if (lessons.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'No lessons available.',
-        icon: Icons.play_lesson_outlined,
+      return RefreshIndicator(
+        onRefresh: _load,
+        child: const SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 400,
+            child: EmptyStateWidget(
+              message: 'No lessons available.',
+              icon: Icons.play_lesson_outlined,
+            ),
+          ),
+        ),
       );
     }
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: GridView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
+        itemCount: lessons.length,
+        itemBuilder: (_, i) => _lessonCard(lessons[i]),
       ),
-      itemCount: lessons.length,
-      itemBuilder: (_, i) => _lessonCard(lessons[i]),
     );
   }
 

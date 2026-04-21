@@ -171,23 +171,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
-                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.lock),
+                  prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      color: AppTheme.textSecondary,
                     ),
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                  helperText:
-                      'Min 8 chars · letter · number · symbol (e.g. @#!)',
-                  helperMaxLines: 2,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               if (_passwordController.text.isNotEmpty) ...[
