@@ -3,10 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Handle background messages
+// Background handler — do NOT show local notification here
+// FCM already auto-displays notification messages in background
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await NotificationService.showLocalNotification(message);
+  // Only handle data-only messages (no notification payload)
+  if (message.notification == null) {
+    await NotificationService.showLocalNotification(message);
+  }
 }
 
 class NotificationService {
@@ -17,12 +21,10 @@ class NotificationService {
   static const _channelId = 'kids_study_app';
   static const _channelName = 'Kids Study App';
 
-  // Call this once on app start
   static Future<void> initialize() async {
-    // Request permission
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    await _messaging.requestPermission(
+        alert: true, badge: true, sound: true);
 
-    // Setup local notifications channel (Android)
     const androidChannel = AndroidNotificationChannel(
       _channelId,
       _channelName,
@@ -30,28 +32,25 @@ class NotificationService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
 
-    // Initialize local notifications
     const initSettings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     );
     await _localNotifications.initialize(initSettings);
 
-    // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(
+        firebaseMessagingBackgroundHandler);
 
-    // Handle foreground messages
+    // Foreground — FCM does NOT auto-show, so we show manually
     FirebaseMessaging.onMessage.listen((message) {
       showLocalNotification(message);
     });
   }
 
-  // Show local notification
-  static Future<void> showLocalNotification(RemoteMessage message) async {
+  static Future<void> showLocalNotification(
+      RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
 
@@ -71,18 +70,25 @@ class NotificationService {
     );
   }
 
-  // Save FCM token for current child
+  // Save FCM token — cleans up old tokens for this device first
   static Future<void> saveToken(String childId) async {
     final token = await _messaging.getToken();
     if (token == null) return;
 
-    await _supabase.from('device_tokens').upsert({
+    // Delete any existing row with this exact token
+    // (in case it was registered under a different child)
+    await _supabase
+        .from('device_tokens')
+        .delete()
+        .eq('token', token);
+
+    // Insert fresh
+    await _supabase.from('device_tokens').insert({
       'child_id': childId,
       'token': token,
-    }, onConflict: 'child_id, token');
+    });
   }
 
-  // Remove token when child logs out
   static Future<void> removeToken(String childId) async {
     final token = await _messaging.getToken();
     if (token == null) return;
@@ -94,15 +100,18 @@ class NotificationService {
         .eq('token', token);
   }
 
-  // Send notification to all devices (called when admin adds lesson/quiz)
   static Future<void> notifyAll({
     required String title,
     required String body,
   }) async {
     try {
-      final response = await _supabase.from('device_tokens').select('token');
+      final response = await _supabase
+          .from('device_tokens')
+          .select('token');
+
       final tokens = (response as List)
           .map((e) => e['token'] as String)
+          .toSet() // deduplicate just in case
           .toList();
 
       if (tokens.isEmpty) return;
@@ -126,11 +135,10 @@ class NotificationService {
         body: {'token': token, 'title': title, 'body': body},
         headers: {
           'Authorization':
-              'Bearer ${_supabase.auth.currentSession?.accessToken ?? ''}',
+          'Bearer ${_supabase.auth.currentSession?.accessToken ?? ''}',
         },
       );
     } catch (e) {
-      // Don't let notification failure block the main action
       debugPrint('Notification error: $e');
     }
   }
