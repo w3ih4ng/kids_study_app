@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_theme.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/services/quiz_image_service.dart';
 import '../../core/services/quiz_service.dart';
 import '../../core/widgets/loading_widget.dart';
@@ -634,6 +635,85 @@ class _AdminQuizQuestionsScreenState
     );
   }
 
+  Future<void> _showNotifyDialog() async {
+    final titleController = TextEditingController(
+      text: '🎯 New Quiz Available!',
+    );
+    final bodyController = TextEditingController(
+      text: '"${_quiz.title}" is ready — ${_quiz.questions.length} questions waiting for you!',
+    );
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Send Notification'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Title',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 13)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.all(10),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text('Message',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 13)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: bodyController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.all(10),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.send, size: 16),
+            label: const Text('Send'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await NotificationService.notifyAll(
+          title: titleController.text.trim(),
+          body: bodyController.text.trim(),
+        );
+        if (mounted) {
+          AppSnackbar.success(context, 'Notification sent to all students!');
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackbar.error(context, 'Failed to send: ${e.toString()}');
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -641,6 +721,14 @@ class _AdminQuizQuestionsScreenState
     return Scaffold(
       appBar: AppBar(
         title: Text(_quiz.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active,
+                color: Colors.white),
+            tooltip: 'Notify students',
+            onPressed: () => _showNotifyDialog(),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(24),
           child: Padding(

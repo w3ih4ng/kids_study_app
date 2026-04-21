@@ -6,6 +6,7 @@ import '../../../core/providers/child_provider.dart';
 import '../../../core/services/quiz_service.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../models/quiz_model.dart';
+import '../../core/services/child_service.dart';
 import 'quiz_result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -111,21 +112,18 @@ class _QuizScreenState extends State<QuizScreen> {
         quizCoinValue: widget.quiz.coinValue,
       );
       coinsEarned = result.coinsEarned;
-    }
 
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QuizResultScreen(
-            quizTitle: widget.quiz.title,
-            score: _correctCount,
-            total: total,
-            coinsEarned: coinsEarned,
-            isPracticeMode: widget.isPracticeMode,
-          ),
-        ),
-      );
+      // Refresh child data so coins badge updates immediately
+      if (mounted) {
+        final updatedChildren = await ChildService.getChildren();
+        final updatedChild = updatedChildren.firstWhere(
+              (c) => c.id == child.id,
+          orElse: () => child,
+        );
+        if (mounted) {
+          context.read<ChildProvider>().setActiveChild(updatedChild);
+        }
+      }
     }
   }
 

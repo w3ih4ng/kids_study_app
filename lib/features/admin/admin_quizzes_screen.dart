@@ -9,7 +9,6 @@ import '../../core/widgets/loading_widget.dart';
 import '../../models/lesson_model.dart';
 import '../../models/quiz_model.dart';
 import 'admin_quiz_questions_screen.dart';
-import '../../core/services/notification_service.dart';
 import '../../core/widgets/app_snackbar.dart';
 
 class AdminQuizzesScreen extends StatefulWidget {
@@ -235,11 +234,6 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                         );
                         if (context.mounted) Navigator.pop(context);
                         _load();
-                        await NotificationService.notifyAll(
-                          title: '🎯 New Quiz Available!',
-                          body:
-                          '${_titleController.text.trim()} is ready!',
-                        );
                         if (context.mounted) {
                           AppSnackbar.success(
                               context, 'Quiz created successfully!');
@@ -449,14 +443,27 @@ class _AdminQuizzesScreenState extends State<AdminQuizzesScreen> {
                     child: Row(
                       children: [
                         // Icon
-                        CircleAvatar(
-                          backgroundColor: AppTheme
-                              .quizzesColor
-                              .withValues(alpha: 0.15),
-                          child: const Icon(
-                              Icons.quiz,
-                              color: AppTheme
-                                  .quizzesColor),
+                        quiz.thumbnailUrl != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Image.network(
+                            quiz.thumbnailUrl!,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => CircleAvatar(
+                              backgroundColor:
+                              AppTheme.quizzesColor.withValues(alpha: 0.15),
+                              child: const Icon(Icons.quiz,
+                                  color: AppTheme.quizzesColor),
+                            ),
+                          ),
+                        )
+                            : CircleAvatar(
+                          backgroundColor:
+                          AppTheme.quizzesColor.withValues(alpha: 0.15),
+                          child: const Icon(Icons.quiz,
+                              color: AppTheme.quizzesColor),
                         ),
                         const SizedBox(width: 12),
 
