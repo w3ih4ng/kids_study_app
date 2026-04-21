@@ -103,13 +103,14 @@ class _QuizScreenState extends State<QuizScreen> {
 
     int coinsEarned = 0;
     if (!widget.isPracticeMode) {
-      coinsEarned = (await QuizService.submitResult(
+      final result = await QuizService.submitResult(
         childId: child.id,
         quizId: widget.quiz.id,
         score: _correctCount,
         total: total,
         quizCoinValue: widget.quiz.coinValue,
-      )) as int;
+      );
+      coinsEarned = result.coinsEarned;
     }
 
     if (mounted) {
@@ -345,15 +346,17 @@ class _QuizScreenState extends State<QuizScreen> {
                                   : AppTheme.danger,
                             ),
                             const SizedBox(width: 10),
-                            Text(
-                              _isCorrect
-                                  ? 'Correct! Well done! 🎉'
-                                  : 'Incorrect. The correct answer is highlighted.',
-                              style: TextStyle(
-                                color: _isCorrect
-                                    ? AppTheme.success
-                                    : AppTheme.danger,
-                                fontWeight: FontWeight.bold,
+                            Flexible(
+                              child: Text(
+                                _isCorrect
+                                    ? 'Correct! Well done! 🎉'
+                                    : 'Incorrect.',
+                                style: TextStyle(
+                                  color: _isCorrect
+                                      ? AppTheme.success
+                                      : AppTheme.danger,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
