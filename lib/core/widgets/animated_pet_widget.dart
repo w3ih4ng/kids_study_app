@@ -180,20 +180,31 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
     return GestureDetector(
       onTap: widget.interactive ? _onTap : null,
       child: Stack(
-        alignment: Alignment.topCenter,
+        alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
+          petImage,
           if (_speechBubble != null)
             Positioned(
-              top: -50,
+              // Position to the LEFT of the pet so it doesn't
+              // get cut off by the right screen edge
+              right: widget.size * 0.8,
+              top: 0,
               child: Container(
+                constraints: const BoxConstraints(maxWidth: 160),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                    // Tail points to the right toward the pet
+                    bottomRight: Radius.circular(4),
+                  ),
                   border: Border.all(
                     color: AppTheme.petsColor.withValues(alpha: 0.3),
                   ),
@@ -210,11 +221,11 @@ class _AnimatedPetWidgetState extends State<AnimatedPetWidget>
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
                 ),
               ),
             ),
-          petImage,
         ],
       ),
     );
