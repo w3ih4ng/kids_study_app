@@ -167,22 +167,23 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Parent Dashboard'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthService.logout();
-              if (context.mounted) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              }
-            },
-          ),
-        ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            final children = await ChildService.getChildren();
+            if (context.mounted && children.isNotEmpty) {
+              final current =
+                  context.read<ChildProvider>().activeChild ?? children.first;
+              context.read<ChildProvider>().setActiveChild(current);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const ChildDashboardScreen()),
+                    (route) => false,
+              );
+            }
+          },
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -370,32 +371,57 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               ),
             ),
-            const SizedBox(height: 12),
-            _DashboardCard(
-              icon: Icons.child_care,
-              title: 'Back to Child',
-              subtitle: 'Return to the child learning dashboard',
-              color: AppTheme.success,
-              onTap: () async {
-                final children = await ChildService.getChildren();
-                if (context.mounted && children.isNotEmpty) {
-                  final current =
-                      context.read<ChildProvider>().activeChild ??
-                      children.first;
-                  context.read<ChildProvider>().setActiveChild(current);
-                  await ChildService.saveLastActiveChild(current.id); // save it
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ChildDashboardScreen(),
-                    ),
-                    (route) => false,
-                  );
-                }
-              },
-            ),
+            const SizedBox(height: 32),
 
-            const SizedBox(height: 24),
+// Logout button — red, full width
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Log Out'),
+                      content: const Text('Are you sure you want to log out?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Log Out',
+                              style: TextStyle(color: AppTheme.danger)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) {
+                    await AuthService.logout();
+                    if (context.mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            (route) => false,
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.logout, color: AppTheme.danger),
+                label: const Text('Log Out',
+                    style: TextStyle(
+                        color: AppTheme.danger,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.danger),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),
